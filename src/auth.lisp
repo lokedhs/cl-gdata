@@ -1,3 +1,7 @@
+(in-package :cl-gdata)
+
+(declaim #.*compile-decl*)
+
 (defclass gdata-session ()
   ((auth :type string
          :initarg :auth
@@ -25,10 +29,13 @@
 
 (defun read-new-username-and-passwd ()
   (format t "Enter new username: ")
-  (let ((username (read)))
+  (let ((username (eval (read))))
     (format t "Enter new password: ")
-    (let ((password (read)))
+    (let ((password (eval (read))))
       (list username password))))
+
+(defvar *gdata-session* nil
+  "The last authenticated session. Used as a default for gdata functions.")
 
 (defun gdata-authenticate (username password service &key (source "dhsDevelopments-lispApi-1"))
   (restart-case
@@ -41,11 +48,23 @@
                                                                               ("source" . ,source)))
         (case code
           ((403) (error 'authentication-failed :username username :response response))
-          ((200) (make-instance 'gdata-session :auth (parse-auth-reply response)))
+          ((200) (setq *gdata-session* (make-instance 'gdata-session :auth (parse-auth-reply response))))
           (t     (error "Unsupported response code from ClientLogin: ~a" response))))
     ;; Restarts
     (use-new-login (new-username new-password)
-      :report "Use new username and password"
+      :report "Restart with different credentials"
       :interactive read-new-username-and-passwd
-      (setq username new-username)
-      (setq password new-password))))
+      (gdata-authenticate new-username new-password service :source source))))
+
+;;;
+;;;  HTTP requests
+;;;
+(defun authenticated-request (url &key (session *gdata-session*) (method :get) (parameters nil) (want-stream nil))
+  (drakma:http-request url
+                       :method method
+                       :parameters parameters
+                       :additional-headers `(("GData-Version" . "3.0")
+                                             ("Authorization" . ,(concatenate 'string
+                                                                              "GoogleLogin auth="
+                                                                              (gdata-session-auth session))))
+                       :want-stream want-stream))
