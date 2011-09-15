@@ -16,6 +16,7 @@
                         :serial t
                         :components ((:file "package")
                                      (:file "misc")
+                                     (:file "xml-misc")
                                      (:file "auth")
                                      (:file "docs")
                                      (:file "spreadsheets")))))

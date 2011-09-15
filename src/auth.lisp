@@ -59,7 +59,8 @@
 ;;;
 ;;;  HTTP requests
 ;;;
-(defun authenticated-request (url &key (session *gdata-session*) (method :get) (parameters nil) (want-stream nil))
+(defun authenticated-request (url &key (session *gdata-session*) (method :get) (parameters nil) (content nil)
+                              (want-stream nil) (content-type nil))
   (drakma:http-request url
                        :method method
                        :parameters parameters
@@ -67,4 +68,6 @@
                                              ("Authorization" . ,(concatenate 'string
                                                                               "GoogleLogin auth="
                                                                               (gdata-session-auth session))))
-                       :want-stream want-stream))
+                       :want-stream want-stream
+                       :content-type (or content-type "application/x-www-form-urlencoded")
+                       :content content))
