@@ -1,0 +1,20 @@
+(in-package :cl-gdata)
+
+(declaim #.*compile-decl*)
+
+(defmacro define-constant (name value &optional doc)
+  `(defconstant ,name (if (boundp ',name) (symbol-value ',name) ,value)
+     ,@(when doc (list doc))))
+
+(defmacro print-unreadable-safely ((&rest slots) object stream &body body)
+  (let ((object-copy (gensym "OBJECT"))
+        (stream-copy (gensym "STREAM")))
+    `(let ((,object-copy ,object)
+           (,stream-copy ,stream))
+       (symbol-macrolet ,(mapcar #'(lambda (slot-name)
+                                     `(,slot-name (if (slot-boundp ,object-copy ',slot-name)
+                                                      (slot-value ,object-copy ',slot-name)
+                                                      :not-bound)))
+                                 slots)
+         (print-unreadable-object (,object-copy ,stream-copy :type t :identity t)
+           ,@body)))))

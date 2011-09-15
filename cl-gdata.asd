@@ -11,9 +11,11 @@
   :depends-on (:split-sequence
                :drakma
                :cxml
-               :cxml-stp)
+               :xpath)
   :components ((:module src
                         :serial t
                         :components ((:file "package")
+                                     (:file "misc")
                                      (:file "auth")
-                                     (:file "docs")))))
+                                     (:file "docs")
+                                     (:file "spreadsheets")))))
