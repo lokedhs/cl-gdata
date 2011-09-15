@@ -10,7 +10,8 @@
                                               (("gs" "rowCount") ,rows)
                                               (("gs" "colCount") ,cols))
                                             s))))
-      (authenticated-request (format nil "https://spreadsheets.google.com/feeds/worksheets/~a/private/full" document-id)
+      (authenticated-request (format nil "https://spreadsheets.google.com/feeds/worksheets/~a/private/full"
+                                     (url-rewrite:url-encode document-id))
                              :method :post
                              :content-type "application/atom+xml"
                              :content content))))

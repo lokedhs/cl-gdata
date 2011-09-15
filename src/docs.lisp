@@ -32,6 +32,13 @@ node: \"rel\", \"type\", \"href\".")))
   (print-unreadable-safely (title updated) obj out
     (format out "~s UPDATED ~a" title updated)))
 
+(defun find-document-feed (document rel type)
+  (let ((found-feed (find-if #'(lambda (feed)
+                                 (and (equal (car feed) rel) (equal (cadr feed) type)))
+                             (document-feeds document))))
+    (unless found-feed (error "Feed not found. rel=~s type=~s" rel type))
+    (caddr found-feed)))
+
 (defun load-and-parse (url &key (session *gdata-session*) (method :get) (content-type nil) (content nil))
   (multiple-value-bind (stream code received-headers original-url reply-stream should-close reason)
       (authenticated-request url :want-stream t :session session :method method :content-type content-type :content content)
@@ -63,6 +70,7 @@ node: \"rel\", \"type\", \"href\".")))
 
 (defun list-documents (&key (session *gdata-session*))
   (let ((doc (load-and-parse "https://docs.google.com/feeds/default/private/full" :session session)))
+    (dom:map-document (cxml:make-character-stream-sink *standard-output*) doc)
     (xpath:map-node-set->list #'(lambda (node)
                                   (make-document-entry node))
                               (with-gdata-namespaces
