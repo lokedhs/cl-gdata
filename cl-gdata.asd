@@ -12,12 +12,14 @@
                :drakma
                :cxml
                :xpath
-               :url-rewrite)
+               :url-rewrite
+               :cl-oauth)
   :components ((:module src
                         :serial t
                         :components ((:file "package")
                                      (:file "misc")
                                      (:file "xml-misc")
                                      (:file "auth")
+                                     (:file "clientlogin-auth")
                                      (:file "docs")
                                      (:file "spreadsheets")))))

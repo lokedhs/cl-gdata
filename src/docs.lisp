@@ -39,17 +39,6 @@ node: \"rel\", \"type\", \"href\".")))
     (unless found-feed (error "Feed not found. rel=~s type=~s" rel type))
     (caddr found-feed)))
 
-(defun load-and-parse (url &key (session *gdata-session*) (method :get) (content-type nil) (content nil))
-  (multiple-value-bind (stream code received-headers original-url reply-stream should-close reason)
-      (authenticated-request url :want-stream t :session session :method method :content-type content-type :content content)
-    (declare (ignore received-headers original-url reply-stream))
-    (when (/= code 200)
-      (error "Failed to load document. code=~s reason=~s" code reason))
-    (unwind-protect
-         (let ((result (cxml:parse-stream stream (cxml-dom:make-dom-builder))))
-           result)
-      (when should-close (close stream)))))
-
 (defun make-document-entry (node)
   (with-gdata-namespaces
     (labels ((text (path)
@@ -70,7 +59,7 @@ node: \"rel\", \"type\", \"href\".")))
 
 (defun list-documents (&key (session *gdata-session*))
   (let ((doc (load-and-parse "https://docs.google.com/feeds/default/private/full" :session session)))
-    (dom:map-document (cxml:make-character-stream-sink *standard-output*) doc)
+    ;;    (dom:map-document (cxml:make-character-stream-sink *standard-output*) doc)
     (xpath:map-node-set->list #'(lambda (node)
                                   (make-document-entry node))
                               (with-gdata-namespaces
