@@ -80,6 +80,13 @@ has not yet been loaded."))
         (setf (slot-value doc 'worksheets) ws-list)
         ws-list))))
 
+(defun fill-array-slice (array element-value x1 x2 y1 y2)
+  (loop
+     for y from y1 to y2
+     do (loop
+           for x from x1 to x2
+           do (setf (aref array x y) element-value))))
+
 ;;;
 ;;; The repeat of the max dimension calculation below is a bit ugly. I suppose
 ;;; it would work if I simply replaced the expression in declaration below
@@ -99,11 +106,7 @@ has not yet been loaded."))
       ;; The gdata feed will only return the cells that actually contain data,
       ;; so we need to mark all the candidate cells as :EMPTY before filling
       ;; in the results
-      (loop
-         for y from y1 to y2
-         do (loop
-               for x from x1 to x2
-               do (setf (aref cells y x) :empty)))
+      (fill-array-slice cells :empty x1 x2 y1 y2)
       (let ((node-doc (load-and-parse (format nil "~a?min-row=~a&max-row=~a&min-col=~a&max-col=~a"
                                               (find-document-feed worksheet +SPREADSHEETS-CELLSFEED+ +ATOM-XML-MIME-TYPE+)
                                               (1+ y1) (1+ y2) (1+ x1) (1+ x2))
