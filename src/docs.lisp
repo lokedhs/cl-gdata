@@ -19,11 +19,12 @@ node: \"rel\", \"type\", \"href\".")
 (defmethod initialize-instance :after ((node node-dom-mixin) &rest initargs &key node-dom &allow-other-keys)
   (declare (ignore initargs))
   (with-slots (feeds) node
-    (setf feeds (xpath:map-node-set->list #'(lambda (n)
-                                              (list (dom:get-attribute n "rel")
-                                                    (dom:get-attribute n "type")
-                                                    (dom:get-attribute n "href")))
-                                          (xpath:evaluate "atom:link" node-dom)))))
+    (with-gdata-namespaces
+      (setf feeds (xpath:map-node-set->list #'(lambda (n)
+                                                (list (dom:get-attribute n "rel")
+                                                      (dom:get-attribute n "type")
+                                                      (dom:get-attribute n "href")))
+                                            (xpath:evaluate "atom:link" node-dom))))))
 
 (defclass document (node-dom-mixin)
   ((id-url             :type string
@@ -99,7 +100,7 @@ it into the KEYWORD package."
 (defun list-documents (&key (session *gdata-session*))
   (let ((doc (load-and-parse "https://docs.google.com/feeds/default/private/full" :session session)))
     ;;    (dom:map-document (cxml:make-character-stream-sink *standard-output*) doc)
-    (xpath:map-node-set->list #'(lambda (node)
-                                  (make-document-entry node))
-                              (with-gdata-namespaces
+    (with-gdata-namespaces
+      (xpath:map-node-set->list #'(lambda (node)
+                                    (make-document-entry node))
                                 (xpath:evaluate "/atom:feed/atom:entry" doc)))))

@@ -6,6 +6,9 @@
 (define-constant +SPREADSHEETS-TABLESFEED+ "http://schemas.google.com/spreadsheets/2006#tablesfeed")
 (define-constant +SPREADSHEETS-CELLSFEED+ "http://schemas.google.com/spreadsheets/2006#cellsfeed")
 
+;;;
+;;; SPREADSHEET
+;;;
 (defclass spreadsheet (document)
   ((worksheets :type (or list (member :unset))
                :initform :unset
@@ -17,6 +20,9 @@ has not yet been loaded."))
 (defmethod make-document-from-resource (node (type (eql :spreadsheet)))
   (make-instance 'spreadsheet :node-dom node))
 
+;;;
+;;; WORKSHEET
+;;;
 (defclass worksheet (node-dom-mixin)
   ((spreadsheet  :type spreadsheet
                  :initarg :spreadsheet
@@ -81,17 +87,32 @@ has not yet been loaded."))
 ;;;
 (defun load-cell-range (worksheet &key
                         (session *gdata-session*)
-                        (min-col 0) (max-col (1- (array-dimension (slot-value worksheet 'cells) 0)))
-                        (min-row 0) (max-row (1- (array-dimension (slot-value worksheet 'cells) 1))))
+                        (min-row 0) (max-row (1- (array-dimension (slot-value worksheet 'cells) 0)))
+                        (min-col 0) (max-col (1- (array-dimension (slot-value worksheet 'cells) 1))))
   "Loads the specified cell range into the worksheet."
   (check-type worksheet worksheet)
-  (let ((x1 (max min-col 0))
-        (x2 (min max-col (1- (array-dimension (slot-value worksheet 'cells) 0))))
-        (y1 (max min-row 0))
-        (y2 (min max-row (1- (array-dimension (slot-value worksheet 'cells) 1)))))
-    (let ((node (load-and-parse (format nil "~a?min-row=~a&max-row=~a&min-col=~a&max-col=~a"
-                                        (find-document-feed worksheet +SPREADSHEETS-CELLSFEED+ +ATOM-XML-MIME-TYPE+)
-;;;                                        (1+ y1) (1+ y2) (1+ x1) (1+ x2))
-                                        1 2 1 2)
-                                :session session)))
-      (dom:map-document (cxml:make-character-stream-sink *standard-output*) node))))
+  (with-slots (cells) worksheet
+    (let ((x1 (max min-col 0))
+          (x2 (min max-col (1- (array-dimension cells 0))))
+          (y1 (max min-row 0))
+          (y2 (min max-row (1- (array-dimension cells 1)))))
+      ;; The gdata feed will only return the cells that actually contain data,
+      ;; so we need to mark all the candidate cells as :EMPTY before filling
+      ;; in the results
+      (loop
+         for y from y1 to y2
+         do (loop
+               for x from x1 to x2
+               do (setf (aref cells y x) :empty)))
+      (let ((node-doc (load-and-parse (format nil "~a?min-row=~a&max-row=~a&min-col=~a&max-col=~a"
+                                              (find-document-feed worksheet +SPREADSHEETS-CELLSFEED+ +ATOM-XML-MIME-TYPE+)
+                                              (1+ y1) (1+ y2) (1+ x1) (1+ x2))
+                                      :session session)))
+        (with-gdata-namespaces
+          (xpath:map-node-set #'(lambda (n)
+                                  (let* ((cell-node (xpath:first-node (xpath:evaluate "gs:cell" n)))
+                                         (row (parse-integer (dom:get-attribute cell-node "row")))
+                                         (col (parse-integer (dom:get-attribute cell-node "col")))
+                                         (content (dom:get-attribute cell-node "inputValue")))
+                                    (setf (aref cells (1- row) (1- col)) content)))
+                              (xpath:evaluate "/atom:feed/atom:entry" node-doc)))))))

@@ -13,7 +13,8 @@
                :cxml
                :xpath
                :url-rewrite
-               :string-case)
+               :string-case
+               :flexi-streams)
   :components ((:module src
                         :serial t
                         :components ((:file "package")

@@ -2,6 +2,8 @@
 
 (declaim #.*compile-decl*)
 
+(defvar *verbose-http-errors* nil)
+
 (defvar *gdata-session* nil
   "The last authenticated session. Used as a default for gdata functions.")
 
@@ -18,6 +20,14 @@
                              :want-stream t :session session :method method :content-type content-type :content content)
     (declare (ignore received-headers original-url reply-stream))
     (when (/= code 200)
+      (when *verbose-http-errors*
+        (format *debug-io* "~&====== ERROR OUTPUT ======~%")
+        (let ((input (flexi-streams:make-flexi-stream stream :external-format :UTF8 :element-type 'character)))
+          (loop
+             with s
+             while (setq s (read-line input nil nil))
+             do (format *debug-io* "~a" s)))
+        (format *debug-io* "~&====== END OF ERROR OUTPUT ======~%"))
       (error "Failed to load document. code=~s reason=~s" code reason))
     (unwind-protect
          (let ((result (cxml:parse-stream stream (cxml-dom:make-dom-builder))))
