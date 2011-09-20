@@ -2,7 +2,7 @@
 
 (declaim #.*compile-decl*)
 
-(defvar *clientlogin-session* nil
+(defvar *gdata-session* nil
   "The last authenticated session. Used as a default for gdata functions.")
 
 (defgeneric authenticated-request (url session &key method parameters content want-stream content-type)

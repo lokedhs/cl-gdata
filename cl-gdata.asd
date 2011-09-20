@@ -13,7 +13,7 @@
                :cxml
                :xpath
                :url-rewrite
-               :cl-oauth)
+               :string-case)
   :components ((:module src
                         :serial t
                         :components ((:file "package")

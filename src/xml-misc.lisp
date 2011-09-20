@@ -74,6 +74,7 @@
                                     (append-subtree new-node curr-child))
                                   new-node)))
                         (string (dom:create-text-node doc tree))
+                        (float (dom:create-text-node doc (format nil "~f" tree)))
                         (number (dom:create-text-node doc (format nil "~a" tree))))))
                  (dom:append-child node n))))
       (check-type content list)
@@ -83,3 +84,6 @@
 (defun build-atom-xml-stream (content stream)
   (dom:map-document (cxml:make-namespace-normalizer (cxml:make-character-stream-sink stream))
                     (build-atom-document content)))
+
+(defun text-from-xpath (node path)
+  (get-text-from-node (xpath:first-node (xpath:evaluate path node))))
