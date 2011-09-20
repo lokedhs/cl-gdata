@@ -77,10 +77,10 @@ return value is the document type."
                                               (xpath:evaluate "atom:link" node-dom)))))))
 
 (defun document-type-name-to-identifier (name)
-  (format t "typ2indent:~s~%" name)
-  (string-case:string-case (name)
-    ("spreadsheet" :spreadsheet)
-    (t             :document)))
+  "Converts the type name from the resource id to an identifier.
+Currently, this is done by simply upcasing the name and interning
+it into the KEYWORD package."
+  (intern (string-upcase name) "KEYWORD"))
 
 (defun make-document-entry (node)
   (with-gdata-namespaces
