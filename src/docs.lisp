@@ -2,9 +2,30 @@
 
 (declaim #.*compile-decl*)
 
+(define-constant +ATOM-XML-MIME-TYPE+ "application/atom+xml")
 (define-constant +DOCS-THUMBNAIL+ "http://schemas.google.com/docs/2007/thumbnail")
 
-(defclass document ()
+(defclass node-dom-mixin ()
+  ((feeds    :type list
+             :initarg :feeds
+             :reader document-feeds
+             :documentation "A list of links from this document.
+Each entry is a list of the three attributes in a \"link\"
+node: \"rel\", \"type\", \"href\".")
+   (node-dom :initarg :node-dom
+             :reader document-node-dom
+             :documentation "The DOM node that was used to initialise this document")))
+
+(defmethod initialize-instance :after ((node node-dom-mixin) &rest initargs &key node-dom &allow-other-keys)
+  (declare (ignore initargs))
+  (with-slots (feeds) node
+    (setf feeds (xpath:map-node-set->list #'(lambda (n)
+                                              (list (dom:get-attribute n "rel")
+                                                    (dom:get-attribute n "type")
+                                                    (dom:get-attribute n "href")))
+                                          (xpath:evaluate "atom:link" node-dom)))))
+
+(defclass document (node-dom-mixin)
   ((id-url             :type string
                        :initarg :id
                        :reader document-id-url)
@@ -24,16 +45,7 @@
                        :reader document-suggested-filename)
    (updated            :type string
                        :initarg :updated
-                       :reader document-updated)
-   (feeds              :type list
-                       :initarg :feeds
-                       :reader document-feeds
-                       :documentation "A list of links from this document.
-Each entry is a list of the three attributes in a \"link\"
-node: \"rel\", \"type\", \"href\".")
-   (node-dom           :initarg :node-dom
-                       :reader document-node-dom
-                       :documentation "The DOM node that was used to initialise this document")))
+                       :reader document-updated)))
 
 (defmethod print-object ((obj document) out)
   (print-unreadable-safely (title resource-id updated) obj out
@@ -52,6 +64,7 @@ return value is the document type."
   (values-list (reverse (split-sequence:split-sequence #\: resource-id :count 2))))
 
 (defun find-document-feed (document rel type)
+  (check-type document node-dom-mixin)
   (let ((found-feed (find-if #'(lambda (feed)
                                  (and (equal (car feed) rel) (equal (cadr feed) type)))
                              (document-feeds document))))
@@ -69,12 +82,7 @@ return value is the document type."
         (setf title              (text "atom:title"))
         (setf description        (text "docs:description"))
         (setf suggested-filename (text "docs:suggestedFilename"))
-        (setf updated            (text "atom:updated"))
-        (setf feeds (xpath:map-node-set->list #'(lambda (n)
-                                                  (list (dom:get-attribute n "rel")
-                                                        (dom:get-attribute n "type")
-                                                        (dom:get-attribute n "href")))
-                                              (xpath:evaluate "atom:link" node-dom)))))))
+        (setf updated            (text "atom:updated"))))))
 
 (defun document-type-name-to-identifier (name)
   "Converts the type name from the resource id to an identifier.

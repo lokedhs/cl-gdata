@@ -12,6 +12,7 @@
   (error "No handler available for session type ~s" (type-of session)))
 
 (defun load-and-parse (url &key (session *gdata-session*) (method :get) (content-type nil) (content nil))
+  (format t "loading url:~s~%" url)
   (multiple-value-bind (stream code received-headers original-url reply-stream should-close reason)
       (authenticated-request url session
                              :want-stream t :session session :method method :content-type content-type :content content)

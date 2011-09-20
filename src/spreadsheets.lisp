@@ -4,6 +4,7 @@
 
 (define-constant +SPREADSHEETS-WORKSHEETSFEED+ "http://schemas.google.com/spreadsheets/2006#worksheetsfeed")
 (define-constant +SPREADSHEETS-TABLESFEED+ "http://schemas.google.com/spreadsheets/2006#tablesfeed")
+(define-constant +SPREADSHEETS-CELLSFEED+ "http://schemas.google.com/spreadsheets/2006#cellsfeed")
 
 (defclass spreadsheet (document)
   ((worksheets :type (or list (member :unset))
@@ -16,7 +17,7 @@ has not yet been loaded."))
 (defmethod make-document-from-resource (node (type (eql :spreadsheet)))
   (make-instance 'spreadsheet :node-dom node))
 
-(defclass worksheet ()
+(defclass worksheet (node-dom-mixin)
   ((spreadsheet  :type spreadsheet
                  :initarg :spreadsheet
                  :initform (error "Can't create a ~s instance without a ~s argument" 'worksheet :spreadsheet)
@@ -34,9 +35,16 @@ has not yet been loaded."))
   (print-unreadable-safely (title) obj out
     (format out "~s" title)))
 
-(defmethod initialize-instance :after ((sheet worksheet) &rest initargs &key row-count column-count &allow-other-keys)
+(defmethod initialize-instance :after ((sheet worksheet)
+                                       &rest initargs
+                                       &key node-dom &allow-other-keys)
   (declare (ignore initargs))
-  (setf (slot-value sheet 'cells) (make-array (list row-count column-count) :adjustable t :initial-element :unset)))
+  (with-slots (title cells) sheet
+    (with-gdata-namespaces
+      (setf title (text-from-xpath node-dom "atom:title"))
+      (setf cells (make-array (list (parse-integer (text-from-xpath node-dom "gs:rowCount"))
+                                    (parse-integer (text-from-xpath node-dom "gs:colCount")))
+                              :adjustable t :initial-element :unset)))))
 
 (defun create-worksheet (document-id title rows cols &key (session *gdata-session*))
   (with-gdata-namespaces
@@ -56,14 +64,12 @@ has not yet been loaded."))
 (defun load-worksheets (doc)
   "Loads the worksheets into the document instance. Returns the new worksheets."
   (check-type doc spreadsheet)
-  (let ((doc-node (load-and-parse (find-document-feed doc +SPREADSHEETS-WORKSHEETSFEED+ "application/atom+xml"))))
+  (let ((doc-node (load-and-parse (find-document-feed doc +SPREADSHEETS-WORKSHEETSFEED+ +ATOM-XML-MIME-TYPE+))))
     (with-gdata-namespaces
       (let ((ws-list (xpath:map-node-set->list #'(lambda (node)
                                                    (make-instance 'worksheet
                                                                   :spreadsheet doc
-                                                                  :title (text-from-xpath node "atom:title")
-                                                                  :row-count (parse-integer (text-from-xpath node "gs:rowCount"))
-                                                                  :column-count (parse-integer (text-from-xpath node "gs:colCount"))))
+                                                                  :node-dom node))
                                                (xpath:evaluate "/atom:feed/atom:entry" doc-node))))
         (setf (slot-value doc 'worksheets) ws-list)
         ws-list))))
@@ -73,7 +79,8 @@ has not yet been loaded."))
 ;;; it would work if I simply replaced the expression in declaration below
 ;;; with ARRAY-DIMENSION-LIMIT, as it would be adjusted in the LET form below.
 ;;;
-(defun load-cell-range (worksheet &key 
+(defun load-cell-range (worksheet &key
+                        (session *gdata-session*)
                         (min-col 0) (max-col (1- (array-dimension (slot-value worksheet 'cells) 0)))
                         (min-row 0) (max-row (1- (array-dimension (slot-value worksheet 'cells) 1))))
   "Loads the specified cell range into the worksheet."
@@ -82,4 +89,9 @@ has not yet been loaded."))
         (x2 (min max-col (1- (array-dimension (slot-value worksheet 'cells) 0))))
         (y1 (max min-row 0))
         (y2 (min max-row (1- (array-dimension (slot-value worksheet 'cells) 1)))))
-    (format t "will load (~a,~a) (~a,~a)~%" x1 x2 y1 y2)))
+    (let ((node (load-and-parse (format nil "~a?min-row=~a&max-row=~a&min-col=~a&max-col=~a"
+                                        (find-document-feed worksheet +SPREADSHEETS-CELLSFEED+ +ATOM-XML-MIME-TYPE+)
+;;;                                        (1+ y1) (1+ y2) (1+ x1) (1+ x2))
+                                        1 2 1 2)
+                                :session session)))
+      (dom:map-document (cxml:make-character-stream-sink *standard-output*) node))))
