@@ -26,19 +26,17 @@ has not yet been loaded."))
                  :initarg :title
                  :reader worksheet-title
                  :documentation "The worksheet title")
-   (row-count    :type (integer 0)
-                 :initarg :row-count
-                 :reader worksheet-row-count
-                 :documentation "The number of rows in the worksheet")
-   (column-count :type (integer 0)
-                 :initarg :column-count
-                 :reader worksheet-column-count
-                 :documentation "The number of columns in the worksheet"))
+   (cells        :type array
+                 :documentation "The content of the worksheet"))
   (:documentation "Class the manages a single worksheet in a spreadsheet document"))
 
 (defmethod print-object ((obj worksheet) out)
-  (print-unreadable-safely (title row-count column-count) obj out
-    (format out "~s ROWS ~a COLUMNS ~a" title row-count column-count)))
+  (print-unreadable-safely (title) obj out
+    (format out "~s" title)))
+
+(defmethod initialize-instance :after ((sheet worksheet) &rest initargs &key row-count column-count &allow-other-keys)
+  (declare (ignore initargs))
+  (setf (slot-value sheet 'cells) (make-array (list row-count column-count) :adjustable t :initial-element :unset)))
 
 (defun create-worksheet (document-id title rows cols &key (session *gdata-session*))
   (with-gdata-namespaces
@@ -69,3 +67,19 @@ has not yet been loaded."))
                                                (xpath:evaluate "/atom:feed/atom:entry" doc-node))))
         (setf (slot-value doc 'worksheets) ws-list)
         ws-list))))
+
+;;;
+;;; The repeat of the max dimension calculation below is a bit ugly. I suppose
+;;; it would work if I simply replaced the expression in declaration below
+;;; with ARRAY-DIMENSION-LIMIT, as it would be adjusted in the LET form below.
+;;;
+(defun load-cell-range (worksheet &key 
+                        (min-col 0) (max-col (1- (array-dimension (slot-value worksheet 'cells) 0)))
+                        (min-row 0) (max-row (1- (array-dimension (slot-value worksheet 'cells) 1))))
+  "Loads the specified cell range into the worksheet."
+  (check-type worksheet worksheet)
+  (let ((x1 (max min-col 0))
+        (x2 (min max-col (1- (array-dimension (slot-value worksheet 'cells) 0))))
+        (y1 (max min-row 0))
+        (y2 (min max-row (1- (array-dimension (slot-value worksheet 'cells) 1)))))
+    (format t "will load (~a,~a) (~a,~a)~%" x1 x2 y1 y2)))
