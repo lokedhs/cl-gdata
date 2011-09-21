@@ -14,7 +14,8 @@
                :xpath
                :url-rewrite
                :string-case
-               :flexi-streams)
+               :flexi-streams
+               :spartns)
   :components ((:module src
                         :serial t
                         :components ((:file "package")
