@@ -16,5 +16,5 @@
                                                       (slot-value ,object-copy ',slot-name)
                                                       :not-bound)))
                                  slots)
-         (print-unreadable-object (,object-copy ,stream-copy :type t :identity t)
+         (print-unreadable-object (,object-copy ,stream-copy :type t :identity nil)
            ,@body)))))

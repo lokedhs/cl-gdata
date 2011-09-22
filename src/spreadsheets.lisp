@@ -33,7 +33,7 @@ has not yet been loaded."))
                  :initarg :title
                  :reader worksheet-title
                  :documentation "The worksheet title")
-   (cells        :type array
+   (cells        :type (array (or spreadsheet-cell (member :unset :empty)))
                  :documentation "The content of the worksheet"))
   (:documentation "Class the manages a single worksheet in a spreadsheet document"))
 
@@ -115,7 +115,6 @@ has not yet been loaded."))
           (xpath:map-node-set #'(lambda (n)
                                   (let* ((cell-node (xpath:first-node (xpath:evaluate "gs:cell" n)))
                                          (row (parse-integer (dom:get-attribute cell-node "row")))
-                                         (col (parse-integer (dom:get-attribute cell-node "col")))
-                                         (content (dom:get-attribute cell-node "inputValue")))
-                                    (setf (aref cells (1- row) (1- col)) content)))
+                                         (col (parse-integer (dom:get-attribute cell-node "col"))))
+                                    (setf (aref cells (1- row) (1- col)) (make-instance 'spreadsheet-cell :node-dom n))))
                               (xpath:evaluate "/atom:feed/atom:entry" node-doc)))))))

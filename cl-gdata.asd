@@ -15,7 +15,8 @@
                :url-rewrite
                :string-case
                :flexi-streams
-               :spartns)
+               :spartns
+               :parse-number)
   :components ((:module src
                         :serial t
                         :components ((:file "package")
@@ -24,4 +25,5 @@
                                      (:file "auth")
                                      (:file "clientlogin-auth")
                                      (:file "docs")
+                                     (:file "spreadsheet-cells")
                                      (:file "spreadsheets")))))
