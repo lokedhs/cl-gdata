@@ -2,20 +2,23 @@
 
 (declaim #.*compile-decl*)
 
-(defclass spreadsheet-cell (node-dom-mixin)
+(defclass spreadsheet-cell ()
   ((input-value   :type string
+                  :initarg :input-value
                   :reader cell-input-value
                   :documentation "The value of the <gs:cell inputValue=...> attribute")
    (value         :type string
+                  :initarg :value
                   :reader cell-value
                   :documentation "The content of the <gc:cell> node")
    (numeric-value :type (or number null)
+                  :initarg :numeric-value
                   :reader cell-numeric-value
                   :documentation "The content of the <gs:cell numericValue=...> attribute, or NIL
 if the cell does not contain a number"))
   (:documentation "Class that describes the content of a single cell"))
 
-(defmethod initialize-instance :after ((obj spreadsheet-cell) &rest initargs &key node-dom &allow-other-keys)
+#+nil(defmethod initialize-instance :after ((obj spreadsheet-cell) &rest initargs &key node-dom &allow-other-keys)
   (declare (ignore initargs))
   (with-gdata-namespaces
     (with-slots (input-value value numeric-value) obj

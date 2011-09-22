@@ -87,34 +87,59 @@ has not yet been loaded."))
            for x from x1 to x2
            do (setf (aref array x y) element-value))))
 
-;;;
-;;; The repeat of the max dimension calculation below is a bit ugly. I suppose
-;;; it would work if I simply replaced the expression in declaration below
-;;; with ARRAY-DIMENSION-LIMIT, as it would be adjusted in the LET form below.
-;;;
-(defun load-cell-range (worksheet &key
-                        (session *gdata-session*)
-                        (min-row 0) (max-row (1- (array-dimension (slot-value worksheet 'cells) 0)))
-                        (min-col 0) (max-col (1- (array-dimension (slot-value worksheet 'cells) 1))))
-  "Loads the specified cell range into the worksheet."
+(defun map-cell-range (worksheet function &key
+                       (session *gdata-session*)
+                       (min-row 0) (max-row (1- (array-dimension (slot-value worksheet 'cells) 0)))
+                       (min-col 0) (max-col (1- (array-dimension (slot-value worksheet 'cells) 1))))
+  "Call FUNCTION for each cell for the given WORKSHEET with the following arguments:
+DOM-NODE - the <entry> node in the XML result
+ROW - the row number for the node (0-based)
+COLUMN - the column number for the node (0-based)
+VALUE - the content of the <gs:cell>
+INPUT-VALUE - the content of the <gs:cell inputValue=...> attribute
+NUMERIC-VALUE - the numeric content of the cell, or NIL if the cell is not numeric"
   (check-type worksheet worksheet)
+  (check-type function function)
   (with-slots (cells) worksheet
-    (let ((x1 (max min-col 0))
-          (x2 (min max-col (1- (array-dimension cells 0))))
-          (y1 (max min-row 0))
-          (y2 (min max-row (1- (array-dimension cells 1)))))
-      ;; The gdata feed will only return the cells that actually contain data,
-      ;; so we need to mark all the candidate cells as :EMPTY before filling
-      ;; in the results
-      (fill-array-slice cells :empty x1 x2 y1 y2)
-      (let ((node-doc (load-and-parse (format nil "~a?min-row=~a&max-row=~a&min-col=~a&max-col=~a"
-                                              (find-document-feed worksheet +SPREADSHEETS-CELLSFEED+ +ATOM-XML-MIME-TYPE+)
-                                              (1+ y1) (1+ y2) (1+ x1) (1+ x2))
-                                      :session session)))
+    (check-range max-row 0 (1- (array-dimension cells 0)))
+    (check-range min-row 0 max-row)
+    (check-range max-col 0 (1- (array-dimension cells 1)))
+    (check-range min-col 0 max-col)
+    (let ((node-doc (load-and-parse (format nil "~a?min-row=~a&max-row=~a&min-col=~a&max-col=~a"
+                                            (find-document-feed worksheet +SPREADSHEETS-CELLSFEED+ +ATOM-XML-MIME-TYPE+)
+                                            (1+ min-row) (1+ max-row) (1+ min-col) (1+ max-col))
+                                    :session session)))
         (with-gdata-namespaces
           (xpath:map-node-set #'(lambda (n)
                                   (let* ((cell-node (xpath:first-node (xpath:evaluate "gs:cell" n)))
                                          (row (parse-integer (dom:get-attribute cell-node "row")))
-                                         (col (parse-integer (dom:get-attribute cell-node "col"))))
-                                    (setf (aref cells (1- row) (1- col)) (make-instance 'spreadsheet-cell :node-dom n))))
-                              (xpath:evaluate "/atom:feed/atom:entry" node-doc)))))))
+                                         (col (parse-integer (dom:get-attribute cell-node "col")))
+                                         (value (get-text-from-node cell-node))
+                                         (input-value (dom:get-attribute cell-node "inputValue"))
+                                         (numeric-value-as-string (dom:get-attribute cell-node "numericValue")))
+                                    (funcall function
+                                             n (1- row) (1- col) value input-value
+                                             (if (and numeric-value-as-string
+                                                      (/= (length numeric-value-as-string) 0))
+                                                 (parse-number:parse-number numeric-value-as-string)
+                                                 nil))))
+                              (xpath:evaluate "/atom:feed/atom:entry" node-doc))))))
+
+(defun update-cell-range (worksheet &key
+                        (session *gdata-session*)
+                        (min-row 0) (max-row (1- (array-dimension (slot-value worksheet 'cells) 0)))
+                        (min-col 0) (max-col (1- (array-dimension (slot-value worksheet 'cells) 1))))
+  "Loads the specified cell range into the worksheet."
+  (with-slots (cells) worksheet
+    (fill-array-slice cells :empty min-row max-row min-col max-col)
+    (map-cell-range worksheet #'(lambda (dom-node row column value input-value numeric-value)
+                                  (declare (ignore dom-node))
+                                  (setf (aref cells row column) (make-instance 'spreadsheet-cell
+                                                                               :input-value input-value
+                                                                               :value value
+                                                                               :numeric-value numeric-value)))
+                    :session session
+                    :min-row min-row
+                    :max-row max-row
+                    :min-col min-col
+                    :max-col max-col)))
