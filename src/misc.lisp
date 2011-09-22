@@ -30,5 +30,4 @@
            quoted-place value min max)))
 
 (defmacro check-range (place min max)
-  (flet ()
-    `(perform-check-range ',place ,place ,min ,max)))
+  `(perform-check-range ',place ,place ,min ,max))

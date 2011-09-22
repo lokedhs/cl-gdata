@@ -55,7 +55,7 @@ contains the authentication key as the value")))
     (use-new-login (new-username new-password)
       :report "Restart with different credentials"
       :interactive read-new-username-and-passwd
-      (gdata-authenticate new-username new-password service :source source))))
+      (clientlogin-authenticate new-username new-password service :source source))))
 
 (defun login-if-needed (session service-name)
   (with-slots (username password auth-keys) session
@@ -90,15 +90,18 @@ contains the authentication key as the value")))
         new-service-name))))
 
 (defmethod authenticated-request (url (session clientlogin-session)
-                                  &key (method :get) (parameters nil) (content nil) (want-stream nil) (content-type nil))
+                                  &key
+                                  (method :get) (parameters nil) (content nil) (want-stream nil)
+                                  (content-type nil) (additional-headers nil))
   (let ((auth-string (login-if-needed session (resolve-service-name-from-url url))))
     (drakma:http-request url
                          :method method
                          :parameters parameters
-                         :additional-headers `(("GData-Version" . "3.0")
-                                               ("Authorization" . ,(concatenate 'string
-                                                                                "GoogleLogin auth="
-                                                                                auth-string)))
+                         :additional-headers (append `(("GData-Version" . "3.0")
+                                                       ("Authorization" . ,(concatenate 'string
+                                                                                        "GoogleLogin auth="
+                                                                                        auth-string)))
+                                                     additional-headers)
                          :want-stream want-stream
                          :content-type (or content-type "application/x-www-form-urlencoded")
                          :content content)))

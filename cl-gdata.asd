@@ -25,5 +25,4 @@
                                      (:file "auth")
                                      (:file "clientlogin-auth")
                                      (:file "docs")
-                                     (:file "spreadsheet-cells")
                                      (:file "spreadsheets")))))

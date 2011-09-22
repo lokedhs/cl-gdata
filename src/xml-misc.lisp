@@ -5,7 +5,8 @@
 (defparameter *gdata-namespaces* '(("atom" "http://www.w3.org/2005/Atom")
                                    ("gd" "http://schemas.google.com/g/2005")
                                    ("docs" "http://schemas.google.com/docs/2007")
-                                   ("gs" "http://schemas.google.com/spreadsheets/2006")))
+                                   ("gs" "http://schemas.google.com/spreadsheets/2006")
+                                   ("batch" "http://schemas.google.com/gdata/batch")))
 
 (defmacro with-gdata-namespaces (&body body)
   `(xpath:with-namespaces ,*gdata-namespaces*
@@ -50,7 +51,7 @@
 ;;;  <foo>
 ;;;    <bar>hello</bar>
 ;;;    <inner>
-;;;       <xyz>text here</xyz>
+;;;       <xyz foo="bar">text here</xyz>
 ;;;    </inner>
 ;;;  </foo>
 ;;;
@@ -59,7 +60,7 @@
 ;;; (("atom" "foo")
 ;;;    (("atom" "bar") "hello")
 ;;;    (("atom" "inner")
-;;;        (("atom" "xyz") "text here")))
+;;;        (("atom" "xyz" "foo" "bar") "text here")))
 ;;;
 (defun build-atom-document (content)
   (let ((doc (cxml-dom:create-document)))
@@ -70,6 +71,9 @@
                                 (let ((new-node (dom:create-element-ns doc
                                                                        (find-namespace-url (car e))
                                                                        (cadr e))))
+                                  (loop
+                                     for (name val) on (cddr e) by #'cddr
+                                     do (dom:set-attribute new-node name val))
                                   (dolist (curr-child (cdr tree))
                                     (append-subtree new-node curr-child))
                                   new-node)))
