@@ -30,15 +30,12 @@ has not yet been loaded."))
                     :documentation "The ID URL of this cell")
    (input-value     :type string
                     :initarg :input-value
-                    :reader cell-input-value
                     :documentation "The value of the <gs:cell inputValue=...> attribute")
    (value           :type string
                     :initarg :value
-                    :reader cell-loaded-value
                     :documentation "The content of the <gc:cell> node")
    (numeric-value   :type (or number null)
                     :initarg :numeric-value
-                    :reader cell-numeric-value
                     :documentation "The content of the <gs:cell numericValue=...> attribute, or NIL
 if the cell does not contain a number")
    (new-input-value :type (or null string)
@@ -75,6 +72,7 @@ if the cell does not contain a number")
                  :reader worksheet-title
                  :documentation "The worksheet title")
    (cells        :type (array (or spreadsheet-cell (member :unset :empty)))
+                 :reader worksheet-cells
                  :documentation "The content of the worksheet"))
   (:documentation "Class that manages a single worksheet in a spreadsheet document"))
 
@@ -94,23 +92,13 @@ if the cell does not contain a number")
                                     (parse-integer (text-from-xpath node-dom "gs:colCount")))
                               :adjustable t :initial-element :unset)))))
 
-(defun worksheet-cell-input-value (worksheet row col)
-  (check-type worksheet worksheet)
-  (let ((cell (aref (slot-value worksheet 'cells) row col)))
-    (with-slots (input-value new-input-value) cell
-      (or new-input-value input-value))))
+(defun worksheet-rows (worksheet)
+  "Returns the number of rows in the worksheet"
+  (array-dimension (worksheet-cells worksheet) 0))
 
-(defun (setf worksheet-cell-input-value) (value worksheet row col)
-  (check-type worksheet worksheet)
-  (with-slots (cells) worksheet
-    (let ((cell (aref cells row col)))
-      (if (typep cell 'spreadsheet-cell)
-          (setf (slot-value cell 'new-input-value) value)
-          (setf (aref cells row col) (make-instance 'spreadsheet-cell
-                                                    :input-value nil
-                                                    :value nil
-                                                    :numeric-value nil
-                                                    :new-input-value value))))))
+(defun worksheet-cols (worksheet)
+  "Returns the number of columns in the worksheet"
+  (array-dimension (worksheet-cells worksheet) 1))
 
 ;;;(defun create-worksheet (document-id title rows cols &key (session *gdata-session*))
 ;;;  (with-gdata-namespaces
@@ -208,6 +196,54 @@ NUMERIC-VALUE - the numeric content of the cell, or NIL if the cell is not numer
                     :max-col max-col)))
 
 ;;;
+;;; Cell access
+;;;
+
+(defun ensure-cell-loaded (worksheet row col)
+  (with-slots (cells) worksheet
+    (let ((cell (aref cells row col)))
+      (if (eq cell :unset)
+          (progn
+            (load-cell-range worksheet :min-row row :max-row row :min-col col :max-col col)
+            (aref cells row col))
+          cell))))
+
+(defun cell-input-value (worksheet row col &optional (default-value ""))
+  (check-type worksheet worksheet)
+  (let ((cell (ensure-cell-loaded worksheet row col)))
+    (if (eq cell :empty)
+        default-value
+        (with-slots (input-value new-input-value) cell
+          (or new-input-value input-value)))))
+
+(defun (setf cell-input-value) (value worksheet row col)
+  (check-type worksheet worksheet)
+  (with-slots (cells) worksheet
+    (let ((cell (aref cells row col)))
+      (if (typep cell 'spreadsheet-cell)
+          (setf (slot-value cell 'new-input-value) value)
+          (setf (aref cells row col) (make-instance 'spreadsheet-cell
+                                                    :input-value nil
+                                                    :value nil
+                                                    :numeric-value nil
+                                                    :new-input-value value))))))
+
+(defun cell-value (worksheet row col &optional (default-value ""))
+  (check-type worksheet worksheet)
+  (with-slots (cells) worksheet
+    (let ((cell (ensure-cell-loaded worksheet row col)))
+      (cond ((eq cell :unset)
+             (error "Cell at row ~d col ~d is unset" row col))
+            ((eq cell :empty)
+             default-value)
+            ((typep cell 'spreadsheet-cell)
+             (let ((value (slot-value cell 'value)))
+               (or value default-value)))
+            (t
+             (error "Unknown data in row ~d col ~d: ~s" row col cell))))))
+
+
+;;;
 ;;; Uploading spreadsheet updates
 ;;;
 (defun find-updated-cells (worksheet)
@@ -222,30 +258,33 @@ NUMERIC-VALUE - the numeric content of the cell, or NIL if the cell is not numer
                             (list (list y x cell))
                             nil))))))
 
-(defun save-updated-cells (worksheet &key (session *gdata-session*))
+(defun build-cell-xml-stream (stream worksheet cellsfeed-name)
   (let ((updated (find-updated-cells worksheet))
-        (cellsfeed-name (find-document-feed worksheet +SPREADSHEETS-CELLSFEED+ +ATOM-XML-MIME-TYPE+))
         (batchid 0))
+    (build-atom-xml-stream `(("atom" "feed")
+                             (("atom" "id") ,cellsfeed-name)
+                             ,@(mapcar #'(lambda (v)
+                                           (destructuring-bind (row col cell) v
+                                             (let ((cell-feed (find-document-feed cell "self" +ATOM-XML-MIME-TYPE+)))
+                                               `(("atom" "entry")
+                                                 (("batch" "id") ,(princ-to-string (incf batchid)))
+                                                 (("batch" "operation" "type" "update"))
+                                                 (("atom" "id") ,cell-feed)
+                                                 (("atom" "link"
+                                                          "rel" "edit"
+                                                          "type" "application/atom+xml"
+                                                          "href" ,(format nil "~a/2" cell-feed)))
+                                                 (("gs" "cell"
+                                                        "row" ,(princ-to-string (1+ row))
+                                                        "col" ,(princ-to-string (1+ col))
+                                                        "inputValue" ,(slot-value cell 'new-input-value)))))))
+                                       updated))
+                           stream)))
+
+(defun save-updated-cells (worksheet &key (session *gdata-session*))
+  (let ((cellsfeed-name (find-document-feed worksheet +SPREADSHEETS-CELLSFEED+ +ATOM-XML-MIME-TYPE+)))
     (let ((content (with-output-to-string (s)
-                     (build-atom-xml-stream `(("atom" "feed")
-                                              (("atom" "id") ,cellsfeed-name)
-                                              ,@(mapcar #'(lambda (v)
-                                                            (destructuring-bind (row col cell) v
-                                                              (let ((cell-feed (find-document-feed cell "self" "application/atom+xml")))
-                                                              `(("atom" "entry")
-                                                                (("batch" "id") ,(princ-to-string (incf batchid)))
-                                                                (("batch" "operation" "type" "update"))
-                                                                (("atom" "id") ,cell-feed)
-                                                                (("atom" "link"
-                                                                         "rel" "edit"
-                                                                         "type" "application/atom+xml"
-                                                                         "href" ,(format nil "~a/2" cell-feed)))
-                                                                (("gs" "cell"
-                                                                       "row" ,(princ-to-string (1+ row))
-                                                                       "col" ,(princ-to-string (1+ col))
-                                                                       "inputValue" ,(slot-value cell 'new-input-value)))))))
-                                                        updated))
-                                            s))))
+                     (build-cell-xml-stream s worksheet cellsfeed-name))))
       ;; The proper way to find the batch feed is to extract it from the header
       ;; of the cells feed. However, there isn't any good place to store it,
       ;; and we might not even have retrieved the cell feed at this time.
