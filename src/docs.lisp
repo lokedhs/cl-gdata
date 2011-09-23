@@ -18,13 +18,14 @@ node: \"rel\", \"type\", \"href\".")
 
 (defmethod initialize-instance :after ((node node-dom-mixin) &rest initargs &key node-dom &allow-other-keys)
   (declare (ignore initargs))
-  (with-slots (feeds) node
-    (with-gdata-namespaces
-      (setf feeds (xpath:map-node-set->list #'(lambda (n)
-                                                (list (dom:get-attribute n "rel")
-                                                      (dom:get-attribute n "type")
-                                                      (dom:get-attribute n "href")))
-                                            (xpath:evaluate "atom:link" node-dom))))))
+  (when node-dom
+    (with-slots (feeds) node
+      (with-gdata-namespaces
+        (setf feeds (xpath:map-node-set->list #'(lambda (n)
+                                                  (list (dom:get-attribute n "rel")
+                                                        (dom:get-attribute n "type")
+                                                        (dom:get-attribute n "href")))
+                                              (xpath:evaluate "atom:link" node-dom)))))))
 
 (defclass document (node-dom-mixin)
   ((id-url             :type string

@@ -24,16 +24,14 @@ has not yet been loaded."))
 ;;; SPREADSHEET-CELL
 ;;;
 (defclass spreadsheet-cell (node-dom-mixin)
-  ((id-url          :type string
-                    :initarg :id-url
-                    :reader cell-id-url
-                    :documentation "The ID URL of this cell")
-   (input-value     :type string
+  ((input-value     :type (or null string)
                     :initarg :input-value
-                    :documentation "The value of the <gs:cell inputValue=...> attribute")
-   (value           :type string
+                    :documentation "The value of the <gs:cell inputValue=...> attribute, or NIL
+if this cell has been initialised before any data was loaded.")
+   (value           :type (or null string)
                     :initarg :value
-                    :documentation "The content of the <gc:cell> node")
+                    :documentation "The content of the <gc:cell> node, or NIL if this cell
+has been initialised before any data was loaded.")
    (numeric-value   :type (or number null)
                     :initarg :numeric-value
                     :documentation "The content of the <gs:cell numericValue=...> attribute, or NIL
@@ -64,7 +62,7 @@ if the cell does not contain a number")
                  :initform (error "Can't create a ~s instance without a ~s argument" 'worksheet :spreadsheet)
                  :reader worksheet-spreadsheet
                  :documentation "The spreadsheet this worksheet belongs to")
-   (id-url       :type string
+   (id-url       :type (or null string)
                  :reader worksheet-id-url
                  :documentation "URL to this worksheet")
    (title        :type string
@@ -135,10 +133,33 @@ if the cell does not contain a number")
            for x from x1 to x2
            do (setf (aref array x y) element-value))))
 
+(defun %map-cell-range-from-dom (function doc)
+  (with-gdata-namespaces
+    (xpath:map-node-set #'(lambda (n)
+                            (let* ((cell-node (xpath:first-node (xpath:evaluate "gs:cell" n)))
+                                   (row (parse-integer (dom:get-attribute cell-node "row")))
+                                   (col (parse-integer (dom:get-attribute cell-node "col")))
+                                   (value (get-text-from-node cell-node))
+                                   (input-value (dom:get-attribute cell-node "inputValue"))
+                                   (numeric-value-as-string (dom:get-attribute cell-node "numericValue")))
+                              (funcall function
+                                       n (1- row) (1- col) value input-value
+                                       (if (and numeric-value-as-string
+                                                (/= (length numeric-value-as-string) 0))
+                                           (parse-number:parse-number numeric-value-as-string)
+                                           nil))))
+                        (xpath:evaluate "/atom:feed/atom:entry" doc))))
+
+(defun %get-and-parse-cell-range (worksheet session min-row max-row min-col max-col)
+  (load-and-parse (format nil "~a?min-row=~a&max-row=~a&min-col=~a&max-col=~a"
+                          (find-document-feed worksheet +SPREADSHEETS-CELLSFEED+ +ATOM-XML-MIME-TYPE+)
+                          (1+ min-row) (1+ max-row) (1+ min-col) (1+ max-col))
+                  :session session))
+
 (defun map-cell-range (worksheet function &key
-                       (session *gdata-session*)
-                       (min-row 0) (max-row (1- (array-dimension (slot-value worksheet 'cells) 0)))
-                       (min-col 0) (max-col (1- (array-dimension (slot-value worksheet 'cells) 1))))
+                                 (session *gdata-session*)
+                                 (min-row 0) (max-row (1- (array-dimension (slot-value worksheet 'cells) 0)))
+                                 (min-col 0) (max-col (1- (array-dimension (slot-value worksheet 'cells) 1))))
   "Call FUNCTION for each cell for the given WORKSHEET with the following arguments:
 DOM-NODE - the <entry> node in the XML result
 ID - the URL to use when updating a cell
@@ -153,27 +174,20 @@ NUMERIC-VALUE - the numeric content of the cell, or NIL if the cell is not numer
     (check-range max-row 0 (1- (array-dimension cells 0)))
     (check-range min-row 0 max-row)
     (check-range max-col 0 (1- (array-dimension cells 1)))
-    (check-range min-col 0 max-col)
-    (let ((node-doc (load-and-parse (format nil "~a?min-row=~a&max-row=~a&min-col=~a&max-col=~a"
-                                            (find-document-feed worksheet +SPREADSHEETS-CELLSFEED+ +ATOM-XML-MIME-TYPE+)
-                                            (1+ min-row) (1+ max-row) (1+ min-col) (1+ max-col))
-                                    :session session)))
-        (with-gdata-namespaces
-          (xpath:map-node-set #'(lambda (n)
-                                  (let* ((cell-node (xpath:first-node (xpath:evaluate "gs:cell" n)))
-                                         (id-url (text-from-xpath n "atom:id"))
-                                         (row (parse-integer (dom:get-attribute cell-node "row")))
-                                         (col (parse-integer (dom:get-attribute cell-node "col")))
-                                         (value (get-text-from-node cell-node))
-                                         (input-value (dom:get-attribute cell-node "inputValue"))
-                                         (numeric-value-as-string (dom:get-attribute cell-node "numericValue")))
-                                    (funcall function
-                                             n id-url (1- row) (1- col) value input-value
-                                             (if (and numeric-value-as-string
-                                                      (/= (length numeric-value-as-string) 0))
-                                                 (parse-number:parse-number numeric-value-as-string)
-                                                 nil))))
-                              (xpath:evaluate "/atom:feed/atom:entry" node-doc))))))
+    (check-range min-col 0 max-col))
+  (let ((node-doc (%get-and-parse-cell-range worksheet session min-row max-row min-col max-col)))
+    (%map-cell-range-from-dom function node-doc)))
+
+(defun %load-cell-range-from-dom (worksheet doc &key test)
+  (with-slots (cells) worksheet
+    (%map-cell-range-from-dom #'(lambda (dom-node row column value input-value numeric-value)
+                                  (when (or (null test) (funcall test dom-node))
+                                    (setf (aref cells row column) (make-instance 'spreadsheet-cell
+                                                                                 :node-dom dom-node
+                                                                                 :input-value input-value
+                                                                                 :value value
+                                                                                 :numeric-value numeric-value))))
+                              doc)))
 
 (defun load-cell-range (worksheet &key
                         (session *gdata-session*)
@@ -182,18 +196,8 @@ NUMERIC-VALUE - the numeric content of the cell, or NIL if the cell is not numer
   "Loads the specified cell range into the worksheet."
   (with-slots (cells) worksheet
     (fill-array-slice cells :empty min-row max-row min-col max-col)
-    (map-cell-range worksheet #'(lambda (dom-node id-url row column value input-value numeric-value)
-                                  (setf (aref cells row column) (make-instance 'spreadsheet-cell
-                                                                               :node-dom dom-node
-                                                                               :id-url id-url
-                                                                               :input-value input-value
-                                                                               :value value
-                                                                               :numeric-value numeric-value)))
-                    :session session
-                    :min-row min-row
-                    :max-row max-row
-                    :min-col min-col
-                    :max-col max-col)))
+    (%load-cell-range-from-dom worksheet (%get-and-parse-cell-range worksheet session
+                                                                    min-row max-row min-col max-col))))
 
 ;;;
 ;;; Cell access
@@ -258,14 +262,24 @@ NUMERIC-VALUE - the numeric content of the cell, or NIL if the cell is not numer
                             (list (list y x cell))
                             nil))))))
 
-(defun build-cell-xml-stream (stream worksheet cellsfeed-name)
-  (let ((updated (find-updated-cells worksheet))
-        (batchid 0))
+(defun find-cell-feed (worksheet cell row col)
+  (with-slots (value) cell
+    (if value
+        (find-document-feed cell "self" +ATOM-XML-MIME-TYPE+)
+        ;; At this point we don't have any existing cell from which to retrieve the cell feed,
+        ;; so we need to compute it ourselves. This is pretty ugly, but it's the best we can
+        ;; do unfortunately.
+        (format nil "~a/R~dC~d"
+                (find-document-feed worksheet +SPREADSHEETS-CELLSFEED+ +ATOM-XML-MIME-TYPE+)
+                (1+ row) (1+ col)))))
+
+(defun build-cell-xml-stream (stream worksheet updated cellsfeed-name)
+  (let ((batchid 0))
     (build-atom-xml-stream `(("atom" "feed")
                              (("atom" "id") ,cellsfeed-name)
                              ,@(mapcar #'(lambda (v)
                                            (destructuring-bind (row col cell) v
-                                             (let ((cell-feed (find-document-feed cell "self" +ATOM-XML-MIME-TYPE+)))
+                                             (let ((cell-feed (find-cell-feed worksheet cell row col)))
                                                `(("atom" "entry")
                                                  (("batch" "id") ,(princ-to-string (incf batchid)))
                                                  (("batch" "operation" "type" "update"))
@@ -282,22 +296,29 @@ NUMERIC-VALUE - the numeric content of the cell, or NIL if the cell is not numer
                            stream)))
 
 (defun save-updated-cells (worksheet &key (session *gdata-session*))
-  (let ((cellsfeed-name (find-document-feed worksheet +SPREADSHEETS-CELLSFEED+ +ATOM-XML-MIME-TYPE+)))
-    (let ((content (with-output-to-string (s)
-                     (build-cell-xml-stream s worksheet cellsfeed-name))))
-      ;; The proper way to find the batch feed is to extract it from the header
-      ;; of the cells feed. However, there isn't any good place to store it,
-      ;; and we might not even have retrieved the cell feed at this time.
-      ;; Fortunately, the format of the batch feed is the same as the cells
-      ;; feed with "/batch" appended. This is documented in the gdata documentation
-      ;; so it really should be stable.
-      (format t "~a~%" content)
-      (let ((result (load-and-parse (format nil "~a/batch" cellsfeed-name)
-                                    :session session
-                                    :method :post
-                                    :content-type "application/atom+xml"
-                                    :content content
-                                    :additional-headers '(("If-Match" . "*")))))
-        (dom:map-document (cxml:make-character-stream-sink *standard-output*) result)
-        ;; TODO clear the updated state of the cells (reload the content?)
-        nil))))
+  (let ((cellsfeed-name (find-document-feed worksheet +SPREADSHEETS-CELLSFEED+ +ATOM-XML-MIME-TYPE+))
+        (updated (find-updated-cells worksheet)))
+    (if (null updated)
+        ;; No updated cells, simply return
+        nil
+        (let ((content (with-output-to-string (s)
+                         (build-cell-xml-stream s worksheet updated cellsfeed-name))))
+          ;; The proper way to find the batch feed is to extract it from the header
+          ;; of the cells feed. However, there isn't any good place to store it,
+          ;; and we might not even have retrieved the cell feed at this time.
+          ;; Fortunately, the format of the batch feed is the same as the cells
+          ;; feed with "/batch" appended. This is documented in the gdata documentation
+          ;; so it really should be stable.
+          (let ((result (load-and-parse (format nil "~a/batch" cellsfeed-name)
+                                        :session session
+                                        :method :post
+                                        :content-type "application/atom+xml"
+                                        :content content
+                                        :additional-headers '(("If-Match" . "*")))))
+            (with-gdata-namespaces
+              (%load-cell-range-from-dom worksheet result
+                                         :test #'(lambda (n)
+                                                   (let ((status-node (xpath:first-node (xpath:evaluate "batch:status" n))))
+                                                     (unless (= (parse-integer (dom:get-attribute status-node "code")) 200)
+                                                       (error "Error updating node"))
+                                                     t)))))))))
