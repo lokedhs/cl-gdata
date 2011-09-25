@@ -16,7 +16,8 @@
                :string-case
                :flexi-streams
                :spartns
-               :parse-number)
+               :parse-number
+               :cl-ppcre)
   :components ((:module src
                         :serial t
                         :components ((:file "package")
