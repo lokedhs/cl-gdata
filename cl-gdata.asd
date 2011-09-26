@@ -26,4 +26,6 @@
                                      (:file "auth")
                                      (:file "clientlogin-auth")
                                      (:file "docs")
-                                     (:file "spreadsheets")))))
+                                     (:file "docs-list")
+                                     (:file "spreadsheets")
+                                     (:file "contacts")))))
