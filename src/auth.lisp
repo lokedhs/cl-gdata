@@ -23,7 +23,8 @@
                              :method method
                              :content-type content-type
                              :content content
-                             :additional-headers additional-headers)
+                             :additional-headers (append '(("GData-Version" . "3.0"))
+                                                         additional-headers))
     (declare (ignore received-headers original-url reply-stream))
     (when (/= code 200)
       (when *verbose-http-errors*

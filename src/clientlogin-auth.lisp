@@ -83,6 +83,7 @@ contains the authentication key as the value")))
     (restart-case
         (cond ((starts-with url "https://docs.google.com/feeds") "writely")
               ((starts-with url "https://spreadsheets.google.com/feeds") "wise")
+              ((starts-with url "https://www.google.com/m8/feeds") "cp")
               (t (error 'missing-service-name :url url)))
       (specify-service-name (new-service-name)
         :report "Specify new service name"
@@ -97,8 +98,7 @@ contains the authentication key as the value")))
     (drakma:http-request url
                          :method method
                          :parameters parameters
-                         :additional-headers (append `(("GData-Version" . "3.0")
-                                                       ("Authorization" . ,(concatenate 'string
+                         :additional-headers (append `(("Authorization" . ,(concatenate 'string
                                                                                         "GoogleLogin auth="
                                                                                         auth-string)))
                                                      additional-headers)
