@@ -31,6 +31,7 @@ node: \"rel\", \"type\", \"href\".")
   (let ((found-feed (find-if #'(lambda (feed)
                                  (and (equal (car feed) rel) (equal (cadr feed) type)))
                              (document-feeds document))))
-    (unless found-feed (error "Feed not found. rel=~s type=~s" rel type))
+    (unless found-feed
+      (error "Feed not found. rel=~s type=~s" rel type))
     (caddr found-feed)))
 
