@@ -16,7 +16,8 @@
                :flexi-streams
                :spartns
                :parse-number
-               :cl-ppcre)
+               :cl-ppcre
+               :gzip-stream)
   :components ((:module src
                         :serial t
                         :components ((:file "package")
