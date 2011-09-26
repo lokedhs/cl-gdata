@@ -93,7 +93,7 @@ contains the authentication key as the value")))
 (defmethod authenticated-request (url (session clientlogin-session)
                                   &key
                                   (method :get) (parameters nil) (content nil) (want-stream nil)
-                                  (content-type nil) (additional-headers nil))
+                                  (content-type nil) (additional-headers nil) (user-agent "cl-gdata"))
   (let ((auth-string (login-if-needed session (resolve-service-name-from-url url))))
     (drakma:http-request url
                          :method method
@@ -103,5 +103,6 @@ contains the authentication key as the value")))
                                                                                         auth-string)))
                                                      additional-headers)
                          :want-stream want-stream
+                         :user-agent user-agent
                          :content-type (or content-type "application/x-www-form-urlencoded")
                          :content content)))
