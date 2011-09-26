@@ -13,7 +13,6 @@
                :cxml
                :xpath
                :url-rewrite
-               :string-case
                :flexi-streams
                :spartns
                :parse-number
@@ -25,7 +24,7 @@
                                      (:file "xml-misc")
                                      (:file "auth")
                                      (:file "clientlogin-auth")
-                                     (:file "docs")
+                                     (:file "atom")
                                      (:file "docs-list")
                                      (:file "spreadsheets")
                                      (:file "contacts")))))
