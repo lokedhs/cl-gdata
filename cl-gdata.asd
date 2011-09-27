@@ -28,4 +28,5 @@
                                      (:file "atom")
                                      (:file "docs-list")
                                      (:file "spreadsheets")
-                                     (:file "contacts")))))
+                                     (:file "contacts")
+                                     (:file "picasa")))))

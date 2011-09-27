@@ -27,8 +27,8 @@
                        :reader document-updated)))
 
 (defmethod print-object ((obj document) out)
-  (print-unreadable-safely (title resource-id updated) obj out
-    (format out "~s RESOURCE-ID ~s UPDATED ~a" title resource-id updated)))
+  (print-unreadable-safely (title updated) obj out
+    (format out "~s UPDATED ~a" title updated)))
 
 (defgeneric make-document-from-resource (node resource-type)
   (:documentation "Create a document instance based on a specific resource type")
