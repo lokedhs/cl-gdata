@@ -6,7 +6,7 @@
   ((summary :type string
             :reader album-summary
             :documentation "The content of the <atom:summary> node"))
-  (:documentation "Class the represents a single album"))
+  (:documentation "Class that represents a single album"))
 
 (defmethod initialize-instance :after ((obj album) &key node-dom &allow-other-keys)
   (with-slots (title summary) obj
