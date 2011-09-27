@@ -15,8 +15,7 @@ node: \"rel\", \"type\", \"href\".")
              :reader document-node-dom
              :documentation "The DOM node that was used to initialise this document")))
 
-(defmethod initialize-instance :after ((node node-dom-mixin) &rest initargs &key node-dom &allow-other-keys)
-  (declare (ignore initargs))
+(defmethod initialize-instance :after ((node node-dom-mixin) &key node-dom &allow-other-keys)
   (when node-dom
     (with-slots (feeds) node
       (with-gdata-namespaces
@@ -25,6 +24,17 @@ node: \"rel\", \"type\", \"href\".")
                                                         (dom:get-attribute n "type")
                                                         (dom:get-attribute n "href")))
                                               (xpath:evaluate "atom:link" node-dom)))))))
+
+(defclass atom-feed-entry (node-dom-mixin)
+  ((title        :type string
+		 :reader feed-entry-title
+		 :documentation "Content of the <title> node"))
+  (:documentation "Common superclass for all Atom feed entries"))
+
+(defmethod initialize-instance :after ((obj atom-feed-entry) &key node-dom &allow-other-keys)
+  (with-slots (title) obj
+    (with-gdata-namespaces
+      (setf title (text-from-xpath node-dom "atom:title")))))
 
 (defun find-document-feed (document rel type)
   (check-type document node-dom-mixin)
