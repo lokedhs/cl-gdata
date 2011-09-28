@@ -13,10 +13,6 @@
     (with-gdata-namespaces
       (setf summary (text-from-xpath node-dom "atom:summary")))))
 
-(defmethod print-object ((obj album) out)
-  (print-unreadable-safely (title) obj out
-    (format out "~s" title)))
-
 (defun list-all-albums (&key (session *gdata-session*) username)
   (let ((doc (load-and-parse (format nil "https://picasaweb.google.com/data/feed/api/user/~a"
                                      (if username (url-rewrite:url-encode username) "default"))

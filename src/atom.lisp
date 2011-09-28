@@ -36,6 +36,10 @@ node: \"rel\", \"type\", \"href\".")
     (with-gdata-namespaces
       (setf title (text-from-xpath node-dom "atom:title")))))
 
+(defmethod print-object ((obj atom-feed-entry) out)
+  (print-unreadable-safely (title) obj out
+    (format out "~s" title)))
+
 (defun find-document-feed (document rel type)
   (check-type document node-dom-mixin)
   (let ((found-feed (find-if #'(lambda (feed)

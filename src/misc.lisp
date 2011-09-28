@@ -24,10 +24,10 @@
          (print-unreadable-object (,object-copy ,stream-copy :type t :identity nil)
            ,@body)))))
 
-(defun perform-check-range (quoted-place value min max)
+(defun %perform-check-range (quoted-place value min max)
   (unless (<= min value max)
     (error "The expression ~s is out of range. Value is ~a, should be between ~a and ~a inclusive."
            quoted-place value min max)))
 
 (defmacro check-range (place min max)
-  `(perform-check-range ',place ,place ,min ,max))
+  `(%perform-check-range ',place ,place ,min ,max))
