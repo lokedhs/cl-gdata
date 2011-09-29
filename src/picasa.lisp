@@ -3,21 +3,15 @@
 (declaim #.*compile-decl*)
 
 (defclass album (atom-feed-entry)
-  ((summary :type string
+  ((summary :type (or null string)
             :reader album-summary
+            :node "atom:summary/text()"
             :documentation "The content of the <atom:summary> node"))
-  (:documentation "Class that represents a single album"))
-
-(defmethod initialize-instance :after ((obj album) &key node-dom &allow-other-keys)
-  (with-slots (title summary) obj
-    (with-gdata-namespaces
-      (setf summary (text-from-xpath node-dom "atom:summary")))))
+  (:documentation "Class that represents a single album")
+  (:metaclass atom-feed-entry-class))
 
 (defun list-all-albums (&key (session *gdata-session*) username)
-  (let ((doc (load-and-parse (format nil "https://picasaweb.google.com/data/feed/api/user/~a"
-                                     (if username (url-rewrite:url-encode username) "default"))
-                             :session session)))
-    (with-gdata-namespaces
-      (xpath:map-node-set->list #'(lambda (n)
-                                    (make-instance 'album :node-dom n))
-                                (xpath:evaluate "/atom:feed/atom:entry" doc)))))
+  (load-atom-feed-url (format nil "https://picasaweb.google.com/data/feed/api/user/~a"
+                              (if username (url-rewrite:url-encode username) "default"))
+                      'album
+                      :session session))
