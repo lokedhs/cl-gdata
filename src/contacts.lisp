@@ -13,23 +13,28 @@
   ((full-name    :type (or null string)
 		 :initform nil
 		 :reader contact-full-name
+                 :node "gd:name/gd:fullName/text()"
 		 :documentation "Content of the <gd:name><gd:fullName> node")
    (given-name   :type (or null string)
 		 :initform nil
 		 :reader contact-given-name
+                 :node "gd:name/gd:givenName/text()"
 		 :documentation "Content of the <gd:name><gd:givenName> node")
    (family-name  :type (or null string)
 		 :initform nil
 		 :reader contact-family-name
+                 :node "gd:name/gd:familyName/text()"
 		 :documentation "Content of the <gd:name><gd:familyName> node")
    (email        :type list
 		 :initform nil
 		 :reader contact-email
+                 :node ("gd:email" "@rel" "@address")
 		 :documentation "Alist of email addresses")
    (phone-number :type list
 		 :initform nil
 		 :reader contact-phone-number
-		 :documentation "Alist of phone numbers")))
+		 :documentation "Alist of phone numbers"))
+  (:metaclass atom-feed-entry-class))
 
 (defun %collect-rel (node path reader)
   (xpath:map-node-set->list #'(lambda (n)
@@ -40,19 +45,11 @@
 (defmethod initialize-instance :after ((obj contact) &key node-dom &allow-other-keys)
   (with-slots (full-name given-name family-name email phone-number) obj
     (with-gdata-namespaces
-      (setf full-name (text-from-xpath node-dom "gd:name/gd:fullName"))
-      (setf given-name (text-from-xpath node-dom "gd:name/gd:givenName"))
-      (setf family-name (text-from-xpath node-dom "gd:name/gd:familyName"))
-      (setf email (%collect-rel node-dom "gd:email" #'(lambda (n) (dom:get-attribute n "address"))))
+      ;;      (setf email (%collect-rel node-dom "gd:email" #'(lambda (n) (dom:get-attribute n "address"))))
       (setf phone-number (%collect-rel node-dom "gd:phoneNumber" #'get-text-from-node)))))
 
 (defun list-all-contacts (&key (session *gdata-session*) username)
-  (let ((doc (load-and-parse (format nil "https://www.google.com/m8/feeds/contacts/~a/full"
-                                     (if username (url-rewrite:url-encode username) "default"))
-                             :session session)))
-    ;;    (dom:map-document (cxml:make-character-stream-sink *standard-output*) doc)
-    (with-gdata-namespaces
-      (xpath:map-node-set->list #'(lambda (n)
-                                    (make-instance 'contact :node-dom n))
-                                (xpath:evaluate "/atom:feed/atom:entry" doc)))))
-
+  (load-atom-feed-url (format nil "https://www.google.com/m8/feeds/contacts/~a/full"
+                              (if username (url-rewrite:url-encode username) "default"))
+                      'contact
+                      :session session))
