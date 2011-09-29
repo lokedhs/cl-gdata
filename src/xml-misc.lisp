@@ -6,7 +6,10 @@
                                    ("gd" "http://schemas.google.com/g/2005")
                                    ("docs" "http://schemas.google.com/docs/2007")
                                    ("gs" "http://schemas.google.com/spreadsheets/2006")
-                                   ("batch" "http://schemas.google.com/gdata/batch")))
+                                   ("batch" "http://schemas.google.com/gdata/batch")
+                                   ("gphoto" "http://schemas.google.com/photos/2007")
+                                   ("exif" "http://schemas.google.com/photos/exif/2007")
+                                   ("media" "http://search.yahoo.com/mrss/")))
 
 (defmacro with-gdata-namespaces (&body body)
   `(xpath:with-namespaces ,*gdata-namespaces*

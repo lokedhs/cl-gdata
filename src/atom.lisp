@@ -2,6 +2,8 @@
 
 (declaim #.*compile-decl*)
 
+(define-constant +ATOM-TAG-FEED+ "http://schemas.google.com/g/2005#feed")
+
 (define-constant +ATOM-XML-MIME-TYPE+ "application/atom+xml")
 
 (defclass node-dom-mixin ()
@@ -25,6 +27,16 @@ node: \"rel\", \"type\", \"href\".")
                                                         (dom:get-attribute n "href")))
                                               (xpath:evaluate "atom:link" node-dom)))))))
 
+(defun find-document-feed (document rel type)
+  "This version should be eliminated once all existing code has been moved to atom-feed-entry instances"
+  (check-type document node-dom-mixin)
+  (let ((found-feed (find-if #'(lambda (feed)
+                                 (and (equal (car feed) rel) (equal (cadr feed) type)))
+                             (document-feeds document))))
+    (unless found-feed
+      (error "Feed not found. rel=~s type=~s" rel type))
+    (caddr found-feed)))
+
 ;;;
 ;;; MOP stuff
 ;;;
@@ -41,6 +53,8 @@ node: \"rel\", \"type\", \"href\".")
                            :accessor field-node)
    (field-node-collectionp :initarg :node-collectionp
                            :accessor node-collectionp)
+   (field-node-type        :initarg :node-type
+                           :accessor field-node-type)
    (field-node-default     :initarg :node-default
                            :accessor node-default)))
 
@@ -72,16 +86,32 @@ node: \"rel\", \"type\", \"href\".")
     (setf (field-node result) (ensure-slot-value (car direct-slots) 'field-node))
     (setf (node-collectionp result) (ensure-slot-value (car direct-slots) 'field-node-collectionp))
     (setf (node-default result) (ensure-slot-value (car direct-slots) 'field-node-default))
+    (setf (field-node-type result) (ensure-slot-value (car direct-slots) 'field-node-type))
     result))
 
 (defclass atom-feed-entry ()
-  ((title        :type string
+  ((feeds        :type list
+                 :reader feed-entry-feeds
+                 :node ("atom:link" "@rel" "@type" "@href")
+                 :node-collectionp t
+                 :documentation "List of all link elements")
+   (title        :type string
 		 :reader feed-entry-title
                  :node "atom:title/text()"
                  :node-default ""
 		 :documentation "Content of the <title> node"))
   (:documentation "Common superclass for all Atom feed entries")
   (:metaclass atom-feed-entry-class))
+
+(defgeneric parse-text-value (value typename)
+  (:documentation "Converts VALUE to the type TYPE.")
+  (:method (value (typename (eql nil)))         value)
+  (:method (value (typename (eql :string)))     value)
+  (:method (value (typename (eql :number)))     (parse-number:parse-number value))
+  (:method (value (typename (eql :true-false))) (cond ((equal value "true") t)
+                                                      ((equal value "false") nil)
+                                                      (t (error "Unexpected value: ~s" value))))
+  (:method (value (typename t)) (error "Illegal type name: ~s" typename)))
 
 (defun %read-subpaths (pathlist node)
   (mapcar #'(lambda (path)
@@ -93,17 +123,19 @@ node: \"rel\", \"type\", \"href\".")
     (let ((class (class-of obj)))
       (dolist (slot (closer-mop:class-slots class))
         (let* ((node-descriptor (field-node slot))
-               (collectionp (node-collectionp slot)))
+               (collectionp (node-collectionp slot))
+               (type (field-node-type slot)))
           (cond ((null node-descriptor)
                  nil)
                 ((typep node-descriptor 'string)
                  (let ((nodes (xpath:evaluate node-descriptor node-dom)))
                    (setf (closer-mop:slot-value-using-class class obj slot)
                          (if collectionp
-                             (xpath:map-node-set->list #'(lambda (n) (dom:node-value n)) nodes)
+                             (xpath:map-node-set->list #'(lambda (n)
+                                                           (parse-text-value (dom:node-value n) type)) nodes)
                              (if (xpath:node-set-empty-p nodes)
                                  (node-default slot)
-                                 (dom:node-value (xpath:first-node nodes)))))))
+                                 (parse-text-value (dom:node-value (xpath:first-node nodes)) type))))))
                 ((typep node-descriptor 'list)
                  (let ((nodes (xpath:evaluate (car node-descriptor) node-dom)))
                    (setf (closer-mop:slot-value-using-class class obj slot)
@@ -119,14 +151,18 @@ node: \"rel\", \"type\", \"href\".")
   (print-unreadable-safely (title) obj out
     (format out "~s" title)))
 
-(defun find-document-feed (document rel type)
-  (check-type document node-dom-mixin)
+(defun find-feed-from-atom-feed-entry (entry rel &optional (type +ATOM-XML-MIME-TYPE+))
+  (check-type entry atom-feed-entry)
   (let ((found-feed (find-if #'(lambda (feed)
                                  (and (equal (car feed) rel) (equal (cadr feed) type)))
-                             (document-feeds document))))
+                             (feed-entry-feeds entry))))
     (unless found-feed
       (error "Feed not found. rel=~s type=~s" rel type))
     (caddr found-feed)))
+
+;;;
+;;; Loading of feeds
+;;;
 
 (defgeneric load-atom-feed (document class-name)
   (:documentation "Loads an atom feed into a list of atom-feed-entry instances"))
@@ -135,6 +171,7 @@ node: \"rel\", \"type\", \"href\".")
   (load-atom-feed document (find-class class)))
 
 (defmethod load-atom-feed (document (class atom-feed-entry-class))
+  ;;  (dom:map-document (cxml:make-character-stream-sink *standard-output*) document)
   (with-gdata-namespaces
     (xpath:map-node-set->list #'(lambda (n)
                                   (make-instance class :node-dom n))
