@@ -11,28 +11,23 @@
 
 (defclass contact (atom-feed-entry)
   ((full-name    :type (or null string)
-		 :initform nil
 		 :reader contact-full-name
                  :node "gd:name/gd:fullName/text()"
 		 :documentation "Content of the <gd:name><gd:fullName> node")
    (given-name   :type (or null string)
-		 :initform nil
 		 :reader contact-given-name
                  :node "gd:name/gd:givenName/text()"
 		 :documentation "Content of the <gd:name><gd:givenName> node")
    (family-name  :type (or null string)
-		 :initform nil
 		 :reader contact-family-name
                  :node "gd:name/gd:familyName/text()"
 		 :documentation "Content of the <gd:name><gd:familyName> node")
    (email        :type list
-		 :initform nil
 		 :reader contact-email
                  :node ("gd:email" "@rel" "@address")
                  :node-collectionp t
 		 :documentation "Alist of email addresses")
    (phone-number :type list
-		 :initform nil
 		 :reader contact-phone-number
                  :node ("gd:phoneNumber" "@rel" "text()")
                  :node-collectionp t
