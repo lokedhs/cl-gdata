@@ -83,26 +83,37 @@ node: \"rel\", \"type\", \"href\".")
   (:documentation "Common superclass for all Atom feed entries")
   (:metaclass atom-feed-entry-class))
 
-;(defun destructure-paths (descriptor node)
-;  (
+(defun %read-subpaths (pathlist node)
+  (mapcar #'(lambda (path)
+              (dom:node-value (xpath:first-node (xpath:evaluate path node))))
+          pathlist))
 
 (defmethod initialize-instance :after ((obj atom-feed-entry) &key node-dom &allow-other-keys)
   (with-gdata-namespaces
     (let ((class (class-of obj)))
       (dolist (slot (closer-mop:class-slots class))
         (let* ((node-descriptor (field-node slot))
-               (collectionp (node-collectionp slot))
-               (node-name (etypecase node-descriptor
-                              (list (car node-descriptor))
-                              (string node-descriptor))))
-          (when node-name
-            (let ((nodes (xpath:evaluate node-name node-dom)))
-              (setf (closer-mop:slot-value-using-class class obj slot)
-                    (if collectionp
-                        (xpath:map-node-set->list #'(lambda (n) (dom:node-value n)) nodes)
-                        (if (xpath:node-set-empty-p nodes)
-                            (node-default slot)
-                            (dom:node-value (xpath:first-node nodes))))))))))))
+               (collectionp (node-collectionp slot)))
+          (cond ((null node-descriptor)
+                 nil)
+                ((typep node-descriptor 'string)
+                 (let ((nodes (xpath:evaluate node-descriptor node-dom)))
+                   (setf (closer-mop:slot-value-using-class class obj slot)
+                         (if collectionp
+                             (xpath:map-node-set->list #'(lambda (n) (dom:node-value n)) nodes)
+                             (if (xpath:node-set-empty-p nodes)
+                                 (node-default slot)
+                                 (dom:node-value (xpath:first-node nodes)))))))
+                ((typep node-descriptor 'list)
+                 (let ((nodes (xpath:evaluate (car node-descriptor) node-dom)))
+                   (setf (closer-mop:slot-value-using-class class obj slot)
+                         (if collectionp
+                             (xpath:map-node-set->list #'(lambda (n) (%read-subpaths (cdr node-descriptor) n)) nodes)
+                             (if (xpath:node-set-empty-p nodes)
+                                 (node-default slot)
+                                 (%read-subpaths (cdr node-descriptor) (xpath:first-node nodes)))))))
+                (t
+                 (error "Illegal node format: ~s" node-descriptor))))))))
 
 (defmethod print-object ((obj atom-feed-entry) out)
   (print-unreadable-safely (title) obj out

@@ -29,24 +29,15 @@
 		 :initform nil
 		 :reader contact-email
                  :node ("gd:email" "@rel" "@address")
+                 :node-collectionp t
 		 :documentation "Alist of email addresses")
    (phone-number :type list
 		 :initform nil
 		 :reader contact-phone-number
+                 :node ("gd:phoneNumber" "@rel" "text()")
+                 :node-collectionp t
 		 :documentation "Alist of phone numbers"))
   (:metaclass atom-feed-entry-class))
-
-(defun %collect-rel (node path reader)
-  (xpath:map-node-set->list #'(lambda (n)
-                                (list (dom:get-attribute n "rel")
-                                      (funcall reader n)))
-                            (xpath:evaluate path node)))
-
-(defmethod initialize-instance :after ((obj contact) &key node-dom &allow-other-keys)
-  (with-slots (full-name given-name family-name email phone-number) obj
-    (with-gdata-namespaces
-      ;;      (setf email (%collect-rel node-dom "gd:email" #'(lambda (n) (dom:get-attribute n "address"))))
-      (setf phone-number (%collect-rel node-dom "gd:phoneNumber" #'get-text-from-node)))))
 
 (defun list-all-contacts (&key (session *gdata-session*) username)
   (load-atom-feed-url (format nil "https://www.google.com/m8/feeds/contacts/~a/full"
