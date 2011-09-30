@@ -9,7 +9,8 @@
                                    ("batch" "http://schemas.google.com/gdata/batch")
                                    ("gphoto" "http://schemas.google.com/photos/2007")
                                    ("exif" "http://schemas.google.com/photos/exif/2007")
-                                   ("media" "http://search.yahoo.com/mrss/")))
+                                   ("media" "http://search.yahoo.com/mrss/")
+                                   ("issues" "http://schemas.google.com/projecthosting/issues/2009")))
 
 (defmacro with-gdata-namespaces (&body body)
   `(xpath:with-namespaces ,*gdata-namespaces*

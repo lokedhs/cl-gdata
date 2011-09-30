@@ -85,6 +85,7 @@ contains the authentication key as the value")))
               ((starts-with url "https://spreadsheets.google.com/feeds") "wise")
               ((starts-with url "https://www.google.com/m8/feeds") "cp")
               ((starts-with url "https://picasaweb.google.com/data/feed") "lh2")
+              ((starts-with url "https://code.google.com/feeds") "code")
               (t (error 'missing-service-name :url url)))
       (specify-service-name (new-service-name)
         :report "Specify new service name"

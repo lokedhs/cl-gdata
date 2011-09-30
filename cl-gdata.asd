@@ -30,4 +30,5 @@
                                      (:file "docs-list")
                                      (:file "spreadsheets")
                                      (:file "contacts")
-                                     (:file "picasa")))))
+                                     (:file "picasa")
+                                     (:file "issue-tracker")))))
