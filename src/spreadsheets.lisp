@@ -317,7 +317,7 @@ NUMERIC-VALUE - the numeric content of the cell, or NIL if the cell is not numer
             (let ((result (load-and-parse (format nil "~a/batch" cellsfeed-name)
                                           :session session
                                           :method :post
-                                          :content-type "application/atom+xml"
+                                          :content-type +ATOM-XML-MIME-TYPE+
                                           :content #'(lambda (stream)
                                                        (build-cell-xml-stream stream worksheet
                                                                               updated cellsfeed-name))
