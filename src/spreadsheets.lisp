@@ -308,32 +308,32 @@ NUMERIC-VALUE - the numeric content of the cell, or NIL if the cell is not numer
         (if (null updated)
             ;; No updated cells, simply return
             nil
-            (let ((content (with-output-to-string (s)
-                             (build-cell-xml-stream s worksheet updated cellsfeed-name))))
-              ;; The proper way to find the batch feed is to extract it from the header
-              ;; of the cells feed. However, there isn't any good place to store it,
-              ;; and we might not even have retrieved the cell feed at this time.
-              ;; Fortunately, the format of the batch feed is the same as the cells
-              ;; feed with "/batch" appended. This is documented in the gdata documentation
-              ;; so it really should be stable.
-              (let ((result (load-and-parse (format nil "~a/batch" cellsfeed-name)
-                                            :session session
-                                            :method :post
-                                            :content-type "application/atom+xml"
-                                            :content content
-                                            :additional-headers '(("If-Match" . "*")))))
-                (with-gdata-namespaces
-                  (let ((errors nil))
-                    (%load-cell-range-from-dom worksheet result
-                                               :test #'(lambda (n)
-                                                         (let ((status-node (xpath:first-node (xpath:evaluate "batch:status" n))))
-                                                           (if (= (parse-integer (dom:get-attribute status-node "code")) 200)
-                                                               t
-                                                               (progn
-                                                                 (push n errors)
-                                                                 nil)))))
-                    (when errors
-                      (error 'cell-update-error :failed-cells errors))))))))
+            ;; The proper way to find the batch feed is to extract it from the header
+            ;; of the cells feed. However, there isn't any good place to store it,
+            ;; and we might not even have retrieved the cell feed at this time.
+            ;; Fortunately, the format of the batch feed is the same as the cells
+            ;; feed with "/batch" appended. This is documented in the gdata documentation
+            ;; so it really should be stable.
+            (let ((result (load-and-parse (format nil "~a/batch" cellsfeed-name)
+                                          :session session
+                                          :method :post
+                                          :content-type "application/atom+xml"
+                                          :content #'(lambda (stream)
+                                                       (build-cell-xml-stream stream worksheet
+                                                                              updated cellsfeed-name))
+                                          :additional-headers '(("If-Match" . "*")))))
+              (with-gdata-namespaces
+                (let ((errors nil))
+                  (%load-cell-range-from-dom worksheet result
+                                             :test #'(lambda (n)
+                                                       (let ((status-node (xpath:first-node (xpath:evaluate "batch:status" n))))
+                                                         (if (= (parse-integer (dom:get-attribute status-node "code")) 200)
+                                                             t
+                                                             (progn
+                                                               (push n errors)
+                                                               nil)))))
+                  (when errors
+                    (error 'cell-update-error :failed-cells errors)))))))
     (ignore-errors-keep-updates ()
       :report "Ignore the errors. The next save will still attempt to update the cells."
       nil)))
