@@ -104,3 +104,6 @@
 
 (defun list-photos (album &key (session *gdata-session*))
   (list-photos-from-url (find-feed-from-atom-feed-entry album +ATOM-TAG-FEED+) :session session))
+
+(defun upload-photo (album stream &key (session *gdata-session*))
+  (error "upload has not been implemented"))
