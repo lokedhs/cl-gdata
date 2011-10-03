@@ -3,6 +3,7 @@
 (declaim #.*compile-decl*)
 
 (define-constant +ATOM-TAG-FEED+ "http://schemas.google.com/g/2005#feed")
+(define-constant +ATOM-TAG-EDIT+ "edit")
 
 (define-constant +ATOM-XML-MIME-TYPE+ "application/atom+xml")
 

@@ -136,5 +136,5 @@
     (download-photo-to-stream photo out :type type)))
 
 (defun upload-photo (album stream &key (session *gdata-session*))
-  (declare (ignore album stream session))
-  (error "upload has not been implemented"))
+  (let ((url (find-feed-from-atom-feed-entry album +ATOM-TAG-EDIT+)))
+    ))
