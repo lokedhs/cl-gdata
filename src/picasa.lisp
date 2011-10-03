@@ -127,10 +127,10 @@
       (when should-close
         (close stream)))))
 
-(defun download-photo-to-file (photo filespec &key type)
+(defun download-photo-to-file (photo filespec &key type overwrite)
   (with-open-file (out filespec
                        :direction :output
-                       :if-exists :supersede
+                       :if-exists (if overwrite :supersede :error)
                        :if-does-not-exist :create
                        :element-type '(unsigned-byte 8))
     (download-photo-to-stream photo out :type type)))
