@@ -18,7 +18,8 @@
                :parse-number
                :cl-ppcre
                :gzip-stream
-               :closer-mop)
+               :closer-mop
+               :cl-fad)
   :components ((:module src
                         :serial t
                         :components ((:file "package")
@@ -31,4 +32,4 @@
                                      (:file "spreadsheets")
                                      (:file "contacts")
                                      (:file "picasa")
-                                     (:file "issue-tracker")))))
+                                     #+nil(:file "issue-tracker")))))

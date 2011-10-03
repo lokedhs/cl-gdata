@@ -105,5 +105,36 @@
 (defun list-photos (album &key (session *gdata-session*))
   (list-photos-from-url (find-feed-from-atom-feed-entry album +ATOM-TAG-FEED+) :session session))
 
+(defun photo-image-types (photo)
+  (check-type photo photo)
+  (mapcar #'car (photo-content photo)))
+
+(defun download-photo-to-stream (photo out-stream &key type)
+  (let ((url (if type
+                 (find type (photo-content photo))
+                 (car (photo-content photo)))))
+    (unless url
+      (error "Can't find photo URL"))
+    (multiple-value-bind (stream code received-headers original-url reply-stream should-close reason)
+        (drakma:http-request (cadr url)
+                             :want-stream t
+                             :user-agent +HTTP-GDATA-USER-AGENT+
+                             :force-binary t)
+      (declare (ignore received-headers original-url reply-stream))
+      (cl-fad:copy-stream stream out-stream)
+      (when (/= code 200)
+        (error "Error downloading photo: ~a" reason))
+      (when should-close
+        (close stream)))))
+
+(defun download-photo-to-file (photo filespec &key type)
+  (with-open-file (out filespec
+                       :direction :output
+                       :if-exists :supersede
+                       :if-does-not-exist :create
+                       :element-type '(unsigned-byte 8))
+    (download-photo-to-stream photo out :type type)))
+
 (defun upload-photo (album stream &key (session *gdata-session*))
+  (declare (ignore album stream session))
   (error "upload has not been implemented"))
