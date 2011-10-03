@@ -296,10 +296,10 @@ NUMERIC-VALUE - the numeric content of the cell, or NIL if the cell is not numer
                            stream)))
 
 (define-condition cell-update-error (error)
-  ((:failed-cells :type list
-                  :initarg :failed-cells
-                  :reader cell-update-error-cell-dom
-                  :documentation "A list of the DOM nodes describing the error nodes from the server")))
+  ((failed-cells :type list
+                 :initarg :failed-cells
+                 :reader cell-update-error-cell-dom
+                 :documentation "A list of the DOM nodes describing the error nodes from the server")))
 
 (defun save-updated-cells (worksheet &key (session *gdata-session*))
   (restart-case
