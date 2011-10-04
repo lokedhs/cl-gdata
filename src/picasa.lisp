@@ -174,19 +174,20 @@
         (format t "url=~s~%" url)
         (format t "seq: ~s~%" (trivial-utf-8:utf-8-bytes-to-string sq))
         (when t (return-from upload-photo)))
-      (http-request-with-stream url #'(lambda (s)
-                                        (format *debug-io* "~&====== DIAG OUTPUT ======~%")
-                                        (let ((input (flexi-streams:make-flexi-stream s
-                                                                                      :external-format :UTF8
-                                                                                      :element-type 'character)))
-                                          (loop
-                                             with s
-                                             while (setq s (read-line input nil nil))
-                                             do (format *debug-io* "~a~%" s)))
-                                        (format *debug-io* "~&====== END OF DIAG OUTPUT ======~%"))
-                                :session session
-                                :method :post
-                                :additional-headers '(("MIME-Version" . "1.0"))
-                                :content-type (format nil "multipart/related; boundary=\"~a\"" boundary)
-                                :content #'send-output))))
-
+      (let ((content (flexi-streams:with-output-to-sequence (seq)
+                       (send-output (flexi-streams:make-flexi-stream seq)))))
+        (http-request-with-stream url #'(lambda (s)
+                                          (format *debug-io* "~&====== DIAG OUTPUT ======~%")
+                                          (let ((input (flexi-streams:make-flexi-stream s
+                                                                                        :external-format :UTF8
+                                                                                        :element-type 'character)))
+                                            (loop
+                                               with s
+                                               while (setq s (read-line input nil nil))
+                                               do (format *debug-io* "~a~%" s)))
+                                          (format *debug-io* "~&====== END OF DIAG OUTPUT ======~%"))
+                                  :session session
+                                  :method :post
+                                  :additional-headers '(("MIME-Version" . "1.0"))
+                                  :content-type (format nil "multipart/related; boundary=\"~a\"" boundary)
+                                  :content content)))))
