@@ -44,7 +44,7 @@
             (loop
                with s
                while (setq s (read-line input nil nil))
-               do (format *debug-io* "~a" s)))
+               do (format *debug-io* "~a~%" s)))
           (format *debug-io* "~&====== END OF ERROR OUTPUT ======~%"))
         (error "Failed to load document. code=~s reason=~s" code reason))
       (unwind-protect
