@@ -19,7 +19,8 @@
                :cl-ppcre
                :gzip-stream
                :closer-mop
-               :cl-fad)
+               :cl-fad
+               :trivial-utf-8)
   :components ((:module src
                         :serial t
                         :components ((:file "package")

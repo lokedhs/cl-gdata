@@ -2,6 +2,9 @@
 
 (declaim #.*compile-decl*)
 
+(defvar *allowed-image-mime-types* '("image/bmp" "image/gif" "image/jpeg" "image/png")
+  "A list of MIME types that are allowed when uploading photos")
+
 (defclass album (atom-feed-entry)
   ((summary :type (or null string)
             :reader album-summary
@@ -135,6 +138,55 @@
                        :element-type '(unsigned-byte 8))
     (download-photo-to-stream photo out :type type)))
 
-(defun upload-photo (album stream &key (session *gdata-session*))
-  (let ((url (find-feed-from-atom-feed-entry album +ATOM-TAG-EDIT+)))
-    ))
+(defun write-utf8-string (stream format &rest args)
+  (write-sequence (trivial-utf-8:string-to-utf-8-bytes (apply #'format nil format args)) stream))
+
+(define-constant +CRLF+ (format nil "~c~c" #\Return #\Newline))
+
+(defun upload-photo (album type stream &key (session *gdata-session*) title summary)
+  (unless (find type *allowed-image-mime-types* :test #'equal)
+    (error "Image type ~a must be one of ~s" type *allowed-image-mime-types*))
+  (let ((url (find-feed-from-atom-feed-entry album +ATOM-TAG-FEED+))
+        (boundary (format nil "END_~d" (random 1000000000))))
+    (format *debug-io* "URL ~s~%BOUNDARY ~s~%" url boundary)
+    (flet ((send-output (outstream)
+;             (write-utf8-string outstream "Content-Type: multipart/related; boundary=\"~a\"~a" boundary +CRLF+)
+;             (write-utf8-string outstream "MIME-Version: 1.0~a~a" +CRLF+ +CRLF+)
+             (write-utf8-string outstream "Media multipart posting~a--~a~a" +CRLF+ boundary +CRLF+)
+             (write-utf8-string outstream "Content-Type: ~a~a~a" +ATOM-XML-MIME-TYPE+ +CRLF+ +CRLF+)
+             (build-atom-xml-stream `(("atom" "entry")
+                                      ,@(when title `((("atom" "title") ,title)))
+                                      ,@(when summary `((("atom" "summary") ,summary)))
+                                      (("atom" "category"
+                                               "scheme" "http://schemas.google.com/g/2005#kind"
+                                               "term" "http://schemas.google.com/photos/2007#photo")))
+                                    outstream)
+             (write-utf8-string outstream "~a--~a~a" +CRLF+ boundary +CRLF+)
+             (write-utf8-string outstream "Content-Type: ~a~a~a" type +CRLF+ +CRLF+)
+             (format *debug-io* "t1:~s t2:~s~%"
+                     (stream-element-type stream)
+                     (stream-element-type outstream))
+             (cl-fad:copy-stream stream outstream)
+             (format *debug-io* "stream copied~%")
+             (write-utf8-string outstream "--~a--~a" boundary +CRLF+)))
+      #+nil(let ((sq (flexi-streams:with-output-to-sequence (seq)
+                  (send-output (flexi-streams:make-flexi-stream seq)))))
+        (format t "url=~s~%" url)
+        (format t "seq: ~s~%" (trivial-utf-8:utf-8-bytes-to-string sq))
+        (when t (return-from upload-photo)))
+      (http-request-with-stream url #'(lambda (s)
+                                        (format *debug-io* "~&====== DIAG OUTPUT ======~%")
+                                        (let ((input (flexi-streams:make-flexi-stream s
+                                                                                      :external-format :UTF8
+                                                                                      :element-type 'character)))
+                                          (loop
+                                             with s
+                                             while (setq s (read-line input nil nil))
+                                             do (format *debug-io* "~a~%" s)))
+                                        (format *debug-io* "~&====== END OF DIAG OUTPUT ======~%"))
+                                :session session
+                                :method :post
+                                :additional-headers '(("MIME-Version" . "1.0"))
+                                :content-type (format nil "multipart/related; boundary=\"~a\"" boundary)
+                                :content #'send-output))))
+
