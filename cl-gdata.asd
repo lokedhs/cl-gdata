@@ -33,4 +33,4 @@
                                      (:file "spreadsheets")
                                      (:file "contacts")
                                      (:file "picasa")
-                                     #+nil(:file "issue-tracker")))))
+                                     (:file "issue-tracker")))))
