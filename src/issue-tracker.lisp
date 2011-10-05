@@ -1,6 +1,6 @@
-(in-package :cl-gdata)
+(in-package :cl-gdata-issue-tracker)
 
-(declaim #.*compile-decl*)
+(declaim #.cl-gdata::*compile-decl*)
 
 (defclass issue (atom-feed-entry)
   ((content        :type string

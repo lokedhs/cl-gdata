@@ -1,13 +1,8 @@
-(in-package :cl-gdata)
+(in-package :cl-gdata-misc)
 
-(declaim #.*compile-decl*)
+(declaim #.cl-gdata::*compile-decl*)
 
 (define-constant +HTTP-GDATA-USER-AGENT+ "cl-gdata (gzip)")
-
-(defvar *verbose-http-errors* nil)
-
-(defvar *gdata-session* nil
-  "The last authenticated session. Used as a default for gdata functions.")
 
 (defgeneric authenticated-request (url session
                                        &key method parameters content want-stream

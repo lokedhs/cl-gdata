@@ -1,6 +1,6 @@
-(in-package :cl-gdata)
+(in-package :cl-gdata-picasa)
 
-(declaim #.*compile-decl*)
+(declaim #.cl-gdata::*compile-decl*)
 
 (defvar *allowed-image-mime-types* '("image/bmp" "image/gif" "image/jpeg" "image/png")
   "A list of MIME types that are allowed when uploading photos")

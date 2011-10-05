@@ -1,7 +1,9 @@
 (defpackage :cl-gdata
   (:use :cl)
   (:export #:gdata-authenticate
-           #:authentication-failed))
+           #:authentication-failed
+           #:*verbose-http-errors*
+           #:*gdata-session*))
 
 (in-package :cl-gdata)
 

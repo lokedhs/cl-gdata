@@ -1,6 +1,6 @@
-(in-package :cl-gdata)
+(in-package :cl-gdata-docs-list)
 
-(declaim #.*compile-decl*)
+(declaim #.cl-gdata::*compile-decl*)
 
 (define-constant +DOCS-THUMBNAIL+ "http://schemas.google.com/docs/2007/thumbnail")
 

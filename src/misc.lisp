@@ -2,9 +2,9 @@
 ;;; Various utility functions and macros that are not specific to cl-gdata
 ;;;
 
-(in-package :cl-gdata)
+(in-package :cl-gdata-misc)
 
-(declaim #.*compile-decl*)
+(declaim #.cl-gdata::*compile-decl*)
 
 (defmacro define-constant (name value &optional doc)
   `(defconstant ,name (if (boundp ',name) (symbol-value ',name) ,value)

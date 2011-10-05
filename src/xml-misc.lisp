@@ -1,6 +1,6 @@
-(in-package :cl-gdata)
+(in-package :cl-gdata-misc)
 
-(declaim #.*compile-decl*)
+(declaim #.cl-gdata::*compile-decl*)
 
 (defparameter *gdata-namespaces* '(("atom" "http://www.w3.org/2005/Atom")
                                    ("gd" "http://schemas.google.com/g/2005")

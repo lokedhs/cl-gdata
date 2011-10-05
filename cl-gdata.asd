@@ -24,8 +24,16 @@
   :components ((:module src
                         :serial t
                         :components ((:file "package")
+                                     (:file "misc-package")
+                                     (:file "clientlogin-package")
+                                     (:file "docs-list-package")
+                                     (:file "spreadsheets-package")
+                                     (:file "picasa-package")
+                                     (:file "contacts-package")
+                                     (:file "issue-tracker-package")
                                      (:file "misc")
                                      (:file "xml-misc")
+                                     (:file "cl-gdata")
                                      (:file "auth")
                                      (:file "clientlogin-auth")
                                      (:file "atom")

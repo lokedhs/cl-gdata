@@ -1,6 +1,6 @@
-(in-package :cl-gdata)
+(in-package :cl-gdata-misc)
 
-(declaim #.*compile-decl*)
+(declaim #.cl-gdata::*compile-decl*)
 
 (define-constant +ATOM-TAG-FEED+ "http://schemas.google.com/g/2005#feed")
 (define-constant +ATOM-TAG-EDIT+ "edit")

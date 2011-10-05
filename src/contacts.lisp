@@ -1,6 +1,6 @@
-(in-package :cl-gdata)
+(in-package :cl-gdata-contacts)
 
-(declaim #.*compile-decl*)
+(declaim #.cl-gdata::*compile-decl*)
 
 (define-constant +EMAIL-TAG-HOME+ "http://schemas.google.com/g/2005#home")
 (define-constant +EMAIL-TAG-WORK+ "http://schemas.google.com/g/2005#work")

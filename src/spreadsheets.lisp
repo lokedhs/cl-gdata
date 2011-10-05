@@ -1,6 +1,6 @@
-(in-package :cl-gdata)
+(in-package :cl-gdata-spreadsheets)
 
-(declaim #.*compile-decl*)
+(declaim #.cl-gdata::*compile-decl*)
 
 (define-constant +SPREADSHEETS-WORKSHEETSFEED+ "http://schemas.google.com/spreadsheets/2006#worksheetsfeed")
 (define-constant +SPREADSHEETS-TABLESFEED+ "http://schemas.google.com/spreadsheets/2006#tablesfeed")
@@ -9,7 +9,7 @@
 ;;;
 ;;; SPREADSHEET
 ;;;
-(defclass spreadsheet (document)
+(defclass spreadsheet (cl-gdata-docs-list:document)
   ((worksheets :type (or list (member :unset))
                :initform :unset
                :reader spreadsheet-worksheets
@@ -17,7 +17,7 @@
 has not yet been loaded."))
   (:documentation "Class that manages the content and pending updates to a spreadsheet document."))
 
-(defmethod make-document-from-resource (node (type (eql :spreadsheet)))
+(defmethod cl-gdata-docs-list::make-document-from-resource (node (type (eql :spreadsheet)))
   (make-instance 'spreadsheet :node-dom node))
 
 ;;;
