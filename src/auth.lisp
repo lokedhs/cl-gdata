@@ -6,7 +6,8 @@
 
 (defgeneric authenticated-request (url session
                                        &key method parameters content want-stream
-                                       content-type additional-headers user-agent)
+                                       content-type additional-headers user-agent
+                                       force-binary)
   (:documentation "Performs an authenticated request to the Google services"))
 
 (defmethod authenticated-request (url session &key &allow-other-keys)
@@ -15,6 +16,7 @@
 (defun http-request-with-stream (url callback &key
                                  (session *gdata-session*) (method :get) (content-type nil)
                                  (content nil) (additional-headers nil)
+                                 (force-binary nil)
                                  (accepted-status '(200)))
   (multiple-value-bind (stream code received-headers original-url reply-stream should-close reason)
       (authenticated-request url session
@@ -24,6 +26,7 @@
                              :user-agent +HTTP-GDATA-USER-AGENT+
                              :content-type content-type
                              :content content
+                             :force-binary force-binary
                              :additional-headers (append '(("GData-Version" . "3.0")
                                                            ("Accept-Encoding" . "gzip"))
                                                          additional-headers))
@@ -49,7 +52,8 @@
 
 (defun load-and-parse (url &key
                        (session *gdata-session*) (method :get) (content-type nil)
-                       (content nil) (additional-headers nil) (accepted-status '(200)))
+                       (content nil) (additional-headers nil) (force-binary nil)
+                       (accepted-status '(200)))
   (http-request-with-stream url
                             #'(lambda (s)
                                 (let ((result (cxml:parse-stream s (cxml-dom:make-dom-builder))))
@@ -59,4 +63,5 @@
                             :content-type content-type
                             :content content
                             :additional-headers additional-headers
+                            :force-binary force-binary
                             :accepted-status accepted-status))

@@ -143,7 +143,7 @@
 
 (define-constant +CRLF+ (format nil "~c~c" #\Return #\Newline))
 
-(defun upload-photo (album type stream &key (session *gdata-session*) title summary)
+(defun upload-photo (album type stream title &key (session *gdata-session*) summary)
   (unless (find type *allowed-image-mime-types* :test #'equal)
     (error "Image type ~a must be one of ~s" type *allowed-image-mime-types*))
   (let ((url (find-feed-from-atom-feed-entry album +ATOM-TAG-FEED+))
@@ -151,8 +151,6 @@
     (format *debug-io* "URL ~s~%BOUNDARY ~s~%" url boundary)
     (flet ((send-output (base-outstream)
              (let ((outstream (flexi-streams:make-flexi-stream base-outstream :external-format :utf-8)))
-;             (write-utf8-string outstream "Content-Type: multipart/related; boundary=\"~a\"~a" boundary +CRLF+)
-;             (write-utf8-string outstream "MIME-Version: 1.0~a~a" +CRLF+ +CRLF+)
                (format outstream "Media multipart posting~a--~a~a" +CRLF+ boundary +CRLF+)
                (format outstream "Content-Type: ~a; charset=UTF-8~a~a" +ATOM-XML-MIME-TYPE+ +CRLF+ +CRLF+)
                (build-atom-xml-stream `(("atom" "entry")
@@ -164,23 +162,20 @@
                                       outstream)
                (format outstream "~a--~a~a" +CRLF+ boundary +CRLF+)
                (format outstream "Content-Type: ~a~a~a" type +CRLF+ +CRLF+)
-               (format *debug-io* "t1:~s t2:~s~%"
-                       (stream-element-type stream)
-                       (stream-element-type outstream))
                (finish-output outstream))
-             (cl-fad:copy-stream stream base-outstream)
+             (cl-fad:copy-stream (flexi-streams:make-flexi-stream stream) base-outstream)
              (format *debug-io* "stream copied~%")
              (let ((outstream (flexi-streams:make-flexi-stream base-outstream)))
                (format outstream "~a--~a--~a" +CRLF+ boundary +CRLF+)
                (finish-output outstream))))
-      (let* ((content (flexi-streams:with-output-to-sequence (seq)
-                       (send-output seq)))
-             (result (load-and-parse url
-                                     :session session
-                                     :method :post
-                                     :additional-headers '(("MIME-Version" . "1.0"))
-                                     :content-type (format nil "multipart/related; boundary=\"~a\"" boundary)
-                                     :content content
-                                     :accepted-status '(201))))
+      (let ((result (load-and-parse url
+                                    :session session
+                                    :method :post
+                                    :additional-headers '(("MIME-Version" . "1.0"))
+                                    :content-type (format nil "multipart/related; boundary=\"~a\"" boundary)
+                                    :content #'(lambda (os)
+                                                 (send-output os))
+                                    :force-binary t
+                                    :accepted-status '(201))))
         (with-gdata-namespaces
           (make-instance 'photo :node-dom (xpath:first-node (xpath:evaluate "/atom:entry" result))))))))
