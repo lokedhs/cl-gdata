@@ -138,7 +138,7 @@
                        :element-type '(unsigned-byte 8))
     (download-photo-to-stream photo out :type type)))
 
-(defun write-utf8-string (stream format &rest args)
+#+nil(defun write-utf8-string (stream format &rest args)
   (write-sequence (trivial-utf-8:string-to-utf-8-bytes (apply #'format nil format args)) stream))
 
 (define-constant +CRLF+ (format nil "~c~c" #\Return #\Newline))
@@ -147,47 +147,40 @@
   (unless (find type *allowed-image-mime-types* :test #'equal)
     (error "Image type ~a must be one of ~s" type *allowed-image-mime-types*))
   (let ((url (find-feed-from-atom-feed-entry album +ATOM-TAG-FEED+))
-        (boundary (format nil "END_~d" (random 1000000000))))
+        (boundary (format nil "MIME_BOUNDARY_END_~d" (random 1000000000))))
     (format *debug-io* "URL ~s~%BOUNDARY ~s~%" url boundary)
-    (flet ((send-output (outstream)
+    (flet ((send-output (base-outstream)
+             (let ((outstream (flexi-streams:make-flexi-stream base-outstream :external-format :utf-8)))
 ;             (write-utf8-string outstream "Content-Type: multipart/related; boundary=\"~a\"~a" boundary +CRLF+)
 ;             (write-utf8-string outstream "MIME-Version: 1.0~a~a" +CRLF+ +CRLF+)
-             (write-utf8-string outstream "Media multipart posting~a--~a~a" +CRLF+ boundary +CRLF+)
-             (write-utf8-string outstream "Content-Type: ~a~a~a" +ATOM-XML-MIME-TYPE+ +CRLF+ +CRLF+)
-             (build-atom-xml-stream `(("atom" "entry")
-                                      ,@(when title `((("atom" "title") ,title)))
-                                      ,@(when summary `((("atom" "summary") ,summary)))
-                                      (("atom" "category"
-                                               "scheme" "http://schemas.google.com/g/2005#kind"
-                                               "term" "http://schemas.google.com/photos/2007#photo")))
-                                    outstream)
-             (write-utf8-string outstream "~a--~a~a" +CRLF+ boundary +CRLF+)
-             (write-utf8-string outstream "Content-Type: ~a~a~a" type +CRLF+ +CRLF+)
-             (format *debug-io* "t1:~s t2:~s~%"
-                     (stream-element-type stream)
-                     (stream-element-type outstream))
-             (cl-fad:copy-stream stream outstream)
+               (format outstream "Media multipart posting~a--~a~a" +CRLF+ boundary +CRLF+)
+               (format outstream "Content-Type: ~a; charset=UTF-8~a~a" +ATOM-XML-MIME-TYPE+ +CRLF+ +CRLF+)
+               (build-atom-xml-stream `(("atom" "entry")
+                                        ,@(when title `((("atom" "title") ,title)))
+                                        ,@(when summary `((("atom" "summary") ,summary)))
+                                        (("atom" "category"
+                                                 "scheme" "http://schemas.google.com/g/2005#kind"
+                                                 "term" "http://schemas.google.com/photos/2007#photo")))
+                                      outstream)
+               (format outstream "~a--~a~a" +CRLF+ boundary +CRLF+)
+               (format outstream "Content-Type: ~a~a~a" type +CRLF+ +CRLF+)
+               (format *debug-io* "t1:~s t2:~s~%"
+                       (stream-element-type stream)
+                       (stream-element-type outstream))
+               (finish-output outstream))
+             (cl-fad:copy-stream stream base-outstream)
              (format *debug-io* "stream copied~%")
-             (write-utf8-string outstream "--~a--~a" boundary +CRLF+)))
-      #+nil(let ((sq (flexi-streams:with-output-to-sequence (seq)
-                       (send-output (flexi-streams:make-flexi-stream seq)))))
-             (format t "url=~s~%" url)
-             (format t "seq: ~s~%" (trivial-utf-8:utf-8-bytes-to-string sq))
-             (when t (return-from upload-photo)))
-      (let ((content (flexi-streams:with-output-to-sequence (seq)
-                       (send-output (flexi-streams:make-flexi-stream seq)))))
-        (http-request-with-stream url #'(lambda (s)
-                                          (format *debug-io* "~&====== DIAG OUTPUT ======~%")
-                                          (let ((input (flexi-streams:make-flexi-stream s
-                                                                                        :external-format :UTF8
-                                                                                        :element-type 'character)))
-                                            (loop
-                                               with s
-                                               while (setq s (read-line input nil nil))
-                                               do (format *debug-io* "~a~%" s)))
-                                          (format *debug-io* "~&====== END OF DIAG OUTPUT ======~%"))
-                                  :session session
-                                  :method :post
-                                  :additional-headers '(("MIME-Version" . "1.0"))
-                                  :content-type (format nil "multipart/related; boundary=\"~a\"" boundary)
-                                  :content content)))))
+             (let ((outstream (flexi-streams:make-flexi-stream base-outstream)))
+               (format outstream "~a--~a--~a" +CRLF+ boundary +CRLF+)
+               (finish-output outstream))))
+      (let* ((content (flexi-streams:with-output-to-sequence (seq)
+                       (send-output seq)))
+             (result (load-and-parse url
+                                     :session session
+                                     :method :post
+                                     :additional-headers '(("MIME-Version" . "1.0"))
+                                     :content-type (format nil "multipart/related; boundary=\"~a\"" boundary)
+                                     :content content
+                                     :accepted-status '(201))))
+        (with-gdata-namespaces
+          (make-instance 'photo :node-dom (xpath:first-node (xpath:evaluate "/atom:entry" result))))))))

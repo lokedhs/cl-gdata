@@ -14,7 +14,8 @@
 
 (defun http-request-with-stream (url callback &key
                                  (session *gdata-session*) (method :get) (content-type nil)
-                                 (content nil) (additional-headers nil))
+                                 (content nil) (additional-headers nil)
+                                 (accepted-status '(200)))
   (multiple-value-bind (stream code received-headers original-url reply-stream should-close reason)
       (authenticated-request url session
                              :want-stream t
@@ -30,7 +31,7 @@
     (let ((decoded-stream (if (equal (cdr (assoc :content-encoding received-headers)) "gzip")
                               (gzip-stream:make-gzip-input-stream stream)
                               stream)))
-      (when (/= code 200)
+      (unless (find code accepted-status)
         (when *verbose-http-errors*
           (format *debug-io* "~&====== ERROR OUTPUT ======~%")
           (let ((input (flexi-streams:make-flexi-stream decoded-stream
@@ -48,7 +49,7 @@
 
 (defun load-and-parse (url &key
                        (session *gdata-session*) (method :get) (content-type nil)
-                       (content nil) (additional-headers nil))
+                       (content nil) (additional-headers nil) (accepted-status '(200)))
   (http-request-with-stream url
                             #'(lambda (s)
                                 (let ((result (cxml:parse-stream s (cxml-dom:make-dom-builder))))
@@ -57,4 +58,5 @@
                             :method method
                             :content-type content-type
                             :content content
-                            :additional-headers additional-headers))
+                            :additional-headers additional-headers
+                            :accepted-status accepted-status))
