@@ -138,9 +138,6 @@
                        :element-type '(unsigned-byte 8))
     (download-photo-to-stream photo out :type type)))
 
-#+nil(defun write-utf8-string (stream format &rest args)
-  (write-sequence (trivial-utf-8:string-to-utf-8-bytes (apply #'format nil format args)) stream))
-
 (define-constant +CRLF+ (format nil "~c~c" #\Return #\Newline))
 
 (defun upload-photo (album type stream title &key (session *gdata-session*) summary)
