@@ -178,5 +178,5 @@ node: \"rel\", \"type\", \"href\".")
                                   (make-instance class :node-dom n))
                               (xpath:evaluate "/atom:feed/atom:entry" document))))
 
-(defun load-atom-feed-url (url class &key (session *gdata-session*))
-  (load-atom-feed (load-and-parse url :session session) class))
+(defun load-atom-feed-url (url class &key (session *gdata-session*) (version "3.0"))
+  (load-atom-feed (load-and-parse url :session session :version version) class))

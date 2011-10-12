@@ -12,7 +12,7 @@
    (author-url     :type string
                    :reader issue-author-uri
                    :node "atom:author/atom:name/text()")
-   (label          :type string
+   (label          :type list
                    :reader issue-label
                    :node "issues:label/text()"
                    :node-collectionp t)
@@ -38,4 +38,5 @@
   (load-atom-feed-url (format nil "https://code.google.com/feeds/issues/p/~a/issues/full"
                               (url-rewrite:url-encode project-name))
                       'issue
-                      :session session))
+                      :session session
+                      :version "1.0"))

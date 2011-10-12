@@ -17,7 +17,8 @@
                                  (session *gdata-session*) (method :get) (content-type nil)
                                  (content nil) (additional-headers nil)
                                  (force-binary nil)
-                                 (accepted-status '(200)))
+                                 (accepted-status '(200))
+                                 (version "2.0"))
   (multiple-value-bind (stream code received-headers original-url reply-stream should-close reason)
       (authenticated-request url session
                              :want-stream t
@@ -27,7 +28,7 @@
                              :content-type content-type
                              :content content
                              :force-binary force-binary
-                             :additional-headers (append '(("GData-Version" . "3.0")
+                             :additional-headers (append `(("GData-Version" . ,version)
                                                            ("Accept-Encoding" . "gzip"))
                                                          additional-headers))
     (declare (ignore original-url reply-stream))
@@ -53,7 +54,7 @@
 (defun load-and-parse (url &key
                        (session *gdata-session*) (method :get) (content-type nil)
                        (content nil) (additional-headers nil) (force-binary nil)
-                       (accepted-status '(200)))
+                       (accepted-status '(200)) (version "3.0"))
   (http-request-with-stream url
                             #'(lambda (s)
                                 (let ((result (cxml:parse-stream s (cxml-dom:make-dom-builder))))
@@ -64,4 +65,5 @@
                             :content content
                             :additional-headers additional-headers
                             :force-binary force-binary
-                            :accepted-status accepted-status))
+                            :accepted-status accepted-status
+                            :version version))
