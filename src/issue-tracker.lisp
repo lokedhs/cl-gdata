@@ -47,10 +47,11 @@
                    :node "atom:content/text()"))
   (:metaclass atom-feed-entry-class))
 
-(defun load-comments (issue)
+(defun load-comments (issue &key (session *gdata-session*))
   (check-type issue issue)
   (setf (slot-value issue 'comments)
         (load-atom-feed-url (find-feed-from-atom-feed-entry issue +COMMENTS-TAG-FEED+) 'comment
+                            :session session
                             :version "1.0")))
 
 (defun list-issues (project-name &key (session *gdata-session*) (include-comments t))
@@ -61,12 +62,37 @@
                                     :version "1.0")))
     (when include-comments
       (dolist (issue issues)
-        (load-comments issue)))
+        (load-comments issue :session session)))
     issues))
 
-(defun add-comment (issue summary &key status labels cc-update)
+(defun add-comment (issue author summary content
+                    &key (session *gdata-session*)
+                    owner-update status labels cc-update)
   (check-type issue issue)
+  (check-type author string)
   (check-type summary string)
+  (check-type content string)
+  (check-type owner-update (or null string))
   (check-type labels list)
   (check-type cc-update list)
-  (load-and-parse (find-feed-from-atom-feed-entry issue)))
+
+  (flet ((send-output (os)
+           (build-atom-xml-stream `(("atom" "entry")
+                                    (("atom" "content") ,content)
+                                    (("atom" "author")
+                                     (("atom" "name") ,author))
+                                    (("issues" "updates")
+                                     (("issues" "summary") ,summary)
+                                     ,@(when status `((("issues" "status") ,status)))
+                                     ,@(when owner-update `((("issues" "ownerUpdate") ,owner-update)))
+                                     ,@(mapcar #'(lambda (s) `(("issues" "label") ,s)) labels)
+                                     ,@(mapcar #'(lambda (s) `(("issues" "ccUpdate") ,s)) cc-update)))
+                                  os)))
+
+    (let ((result (load-and-parse (find-feed-from-atom-feed-entry issue +COMMENTS-TAG-FEED+)
+                                  :session session
+                                  :method :post
+                                  :version "1.0"
+                                  :content-type +ATOM-XML-MIME-TYPE+
+                                  :content #'send-output)))
+      result)))

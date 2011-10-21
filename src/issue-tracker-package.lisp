@@ -10,4 +10,5 @@
            #:issue-stars
            #:issue-state
            #:issue-status
-           #:list-issues))
+           #:list-issues
+           #:add-comment))
