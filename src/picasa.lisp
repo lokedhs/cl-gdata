@@ -126,9 +126,9 @@
       (declare (ignore received-headers original-url reply-stream))
       (unwind-protect
            (progn
-             (cl-fad:copy-stream stream out-stream)
              (when (/= code 200)
-               (error "Error downloading photo: ~a" reason)))
+               (error "Error downloading photo: ~a" reason))
+             (cl-fad:copy-stream stream out-stream))
         (when should-close
           (close stream))))))
 
