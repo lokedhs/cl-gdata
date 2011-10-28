@@ -124,11 +124,13 @@
                              :user-agent +HTTP-GDATA-USER-AGENT+
                              :force-binary t)
       (declare (ignore received-headers original-url reply-stream))
-      (cl-fad:copy-stream stream out-stream)
-      (when (/= code 200)
-        (error "Error downloading photo: ~a" reason))
-      (when should-close
-        (close stream)))))
+      (unwind-protect
+           (progn
+             (cl-fad:copy-stream stream out-stream)
+             (when (/= code 200)
+               (error "Error downloading photo: ~a" reason)))
+        (when should-close
+          (close stream))))))
 
 (defun download-photo-to-file (photo filespec &key type overwrite)
   (with-open-file (out filespec

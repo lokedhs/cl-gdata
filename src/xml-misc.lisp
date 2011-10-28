@@ -83,7 +83,7 @@
                                   new-node)))
                         (string (dom:create-text-node doc tree))
                         (float (dom:create-text-node doc (format nil "~f" tree)))
-                        (number (dom:create-text-node doc (format nil "~a" tree))))))
+                        (integer (dom:create-text-node doc (format nil "~a" tree))))))
                  (dom:append-child node n))))
       (check-type content list)
       (append-subtree doc content)

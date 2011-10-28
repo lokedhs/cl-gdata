@@ -32,24 +32,25 @@
                                                            ("Accept-Encoding" . "gzip"))
                                                          additional-headers))
     (declare (ignore original-url reply-stream))
-    (let ((decoded-stream (if (equal (cdr (assoc :content-encoding received-headers)) "gzip")
-                              (gzip-stream:make-gzip-input-stream stream)
-                              stream)))
-      (unless (find code accepted-status)
-        (when *verbose-http-errors*
-          (format *debug-io* "~&====== ERROR OUTPUT ======~%")
-          (let ((input (flexi-streams:make-flexi-stream decoded-stream
-                                                        :external-format :UTF8
-                                                        :element-type 'character)))
-            (loop
-               with s
-               while (setq s (read-line input nil nil))
-               do (format *debug-io* "~a~%" s)))
-          (format *debug-io* "~&====== END OF ERROR OUTPUT ======~%"))
-        (error "Failed to load document. code=~s reason=~s" code reason))
-      (unwind-protect
-           (funcall callback decoded-stream)
-        (when should-close (close stream))))))
+    (unwind-protect
+         (let ((decoded-stream (if (equal (cdr (assoc :content-encoding received-headers)) "gzip")
+                                   (gzip-stream:make-gzip-input-stream stream)
+                                   stream)))
+           (unless (find code accepted-status)
+             (when *verbose-http-errors*
+               (format *debug-io* "~&====== ERROR OUTPUT ======~%")
+               (let ((input (flexi-streams:make-flexi-stream decoded-stream
+                                                             :external-format :UTF8
+                                                             :element-type 'character)))
+                 (loop
+                    with s
+                    while (setq s (read-line input nil nil))
+                    do (format *debug-io* "~a~%" s)))
+               (format *debug-io* "~&====== END OF ERROR OUTPUT ======~%"))
+             (error "Failed to load document. code=~s reason=~s" code reason))
+           (funcall callback decoded-stream))
+      (when should-close
+        (close stream)))))
 
 (defun load-and-parse (url &key
                        (session *gdata-session*) (method :get) (content-type nil)
