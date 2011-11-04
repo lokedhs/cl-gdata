@@ -299,9 +299,11 @@ NUMERIC-VALUE - the numeric content of the cell, or NIL if the cell is not numer
   ((failed-cells :type list
                  :initarg :failed-cells
                  :reader cell-update-error-cell-dom
-                 :documentation "A list of the DOM nodes describing the error nodes from the server")))
+                 :documentation "A list of the DOM nodes describing thedefi error nodes from the server"))
+  (:documentation "Condition that is raised if there is a problem uploading the spreadsheet."))
 
 (defun save-updated-cells (worksheet &key (session *gdata-session*))
+  "Update the spreadsheet document with all changes that has been made."
   (restart-case
       (let ((cellsfeed-name (find-document-feed worksheet +SPREADSHEETS-CELLSFEED+ +ATOM-XML-MIME-TYPE+))
             (updated (find-updated-cells worksheet)))
