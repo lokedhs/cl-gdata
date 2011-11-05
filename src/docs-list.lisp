@@ -71,6 +71,4 @@ it into the KEYWORD package."
   (let ((doc (load-and-parse "https://docs.google.com/feeds/default/private/full" :session session)))
     ;;    (dom:map-document (cxml:make-character-stream-sink *standard-output*) doc)
     (with-gdata-namespaces
-      (xpath:map-node-set->list #'(lambda (node)
-                                    (make-document-entry node))
-                                (xpath:evaluate "/atom:feed/atom:entry" doc)))))
+      (xpath:map-node-set->list #'make-document-entry (xpath:evaluate "/atom:feed/atom:entry" doc)))))
