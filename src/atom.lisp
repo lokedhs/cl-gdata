@@ -100,7 +100,10 @@ node: \"rel\", \"type\", \"href\".")
 		 :reader feed-entry-title
                  :node "atom:title/text()"
                  :node-default ""
-		 :documentation "Content of the <title> node"))
+		 :documentation "Content of the <title> node")
+   (node-dom     :initarg :node-dom
+                 :reader feed-entry-node-dom
+                 :documentation "The underlying dom for this node"))
   (:documentation "Common superclass for all Atom feed entries")
   (:metaclass atom-feed-entry-class))
 
