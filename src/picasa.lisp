@@ -14,42 +14,51 @@
   (:documentation "Class that represents a single album")
   (:metaclass atom-feed-entry-class))
 
-(defun list-all-albums (&key (session *gdata-session*) username)
+(defun list-all-albums (&key (session *gdata-session*) user)
+  "Return a list of all accessible albums for a user. USER indicates the
+username whose albmus should be retrieved. Defaults to the current user."
   (load-atom-feed-url (format nil "https://picasaweb.google.com/data/feed/api/user/~a"
-                              (if username (url-rewrite:url-encode username) "default"))
+                              (if user (url-rewrite:url-encode user) "default"))
                       'album
                       :session session))
 
 (defclass photo (atom-feed-entry)
   ((published          :type string
                        :reader photo-published
-                       :node "atom:published/text()")
+                       :node "atom:published/text()"
+                       :documentation "The date the photo was uploaded")
    (summary            :type string
                        :reader photo-summary
                        :node "atom:summary/text()"
-                       :node-default "")
+                       :node-default ""
+                       :documentation "Summary for the photo")
    (content            :type list
                        :reader photo-content
                        :node ("atom:content" "@type" "@src")
-                       :node-collectionp t)
+                       :node-collectionp t
+                       :documentation "A list of content locations")
    (photo-id           :type (or null string)
                        :reader photo-id
-                       :node "gphoto:id/text()")
+                       :node "gphoto:id/text()"
+                       :documentation "The photo ID")
    (position           :type (or null string)
                        :reader photo-position
                        :node "gphoto:position/text()")
    (width              :type number
                        :reader photo-width
                        :node "gphoto:width/text()"
-                       :node-type :number)
+                       :node-type :number
+                       :documentation "The width of the photo in pixels")
    (height             :type number
                        :reader photo-height
                        :node "gphoto:height/text()"
-                       :node-type :number)
+                       :node-type :number
+                       :documentation "The height of the photo in pixels")
    (size               :type number
                        :reader photo-size
                        :node "gphoto:size/text()"
-                       :node-type :number)
+                       :node-type :number
+                       :documentation "The file size of the photo")
    (abs-rotation       :type number
                        :reader photo-abs-rotation
                        :node "gphoto:absRotation/text()"
@@ -64,7 +73,8 @@
    (comment-count      :type number
                        :reader photo-comment-count
                        :node "gphoto:commentCount/text()"
-                       :node-type :number)
+                       :node-type :number
+                       :documentation "The number of comments that has been posted for this photo")
    ;; EXIF data
    (exif-fstop         :type (or null number)
                        :reader photo-exif-fstop
@@ -99,20 +109,27 @@
    (media-thumbnail    :type list
                        :reader photo-media-thumbnail
                        :node ("media:group/media:thumbnail" "@url" "@width" "@height")
-                       :node-collectionp t))
+                       :node-collectionp t
+                       :documentation "A list of thumbnail descriptions"))
+  (:documentation "Class that represents a single photo in an album.")
   (:metaclass atom-feed-entry-class))
 
 (defun list-photos-from-url (url &key (session *gdata-session*))
+  "Return a list of photos in a given album specified using the Picasa album url format"
   (load-atom-feed-url url 'photo :session session))
 
 (defun list-photos (album &key (session *gdata-session*))
+  "Return a list of photos in a given album"
   (list-photos-from-url (find-feed-from-atom-feed-entry album +ATOM-TAG-FEED+) :session session))
 
 (defun photo-image-types (photo)
+  "Return a list of image types available for the given photo"
   (check-type photo photo)
   (mapcar #'car (photo-content photo)))
 
 (defun download-photo-to-stream (photo out-stream &key type)
+  "Download the given photo and write the content to OUT-STREAM. If given, TYPE indicates
+the image type to download. TYPE must be one of the types returned by PHOTO-IMAGE-TYPES."
   (let ((url (if type
                  (find type (photo-content photo))
                  (car (photo-content photo)))))
@@ -133,6 +150,10 @@
           (close stream))))))
 
 (defun download-photo-to-file (photo filespec &key type overwrite)
+  "Download the given photo to a file given by FILESPEC. If given, TYPE indicates
+the image type to download. TYPE must be one of the types returned by PHOTO-IMAGE-TYPES.
+If the OVERWRITE keyword is non-NIL, an existing file will be overwritten, otherwise
+an error will be raised."
   (with-open-file (out filespec
                        :direction :output
                        :if-exists (if overwrite :supersede :error)
@@ -143,6 +164,10 @@
 (define-constant +CRLF+ (format nil "~c~c" #\Return #\Newline))
 
 (defun upload-photo (album type stream title &key (session *gdata-session*) summary)
+  "Upload a photo to Picasa. ALBUM indicates the album the the photo should be uploaded to.
+TYPE is the mime-type of the photo and must be one of the allowed types in *ALLOWED-IMAGE-MIME-TYPES*.
+STREAM must be a binary input stream from which to read the image data. TITLE is the title of
+the photo. SUMMARY is the summary for the photo."
   (unless (find type *allowed-image-mime-types* :test #'equal)
     (error "Image type ~a must be one of ~s" type *allowed-image-mime-types*))
   (let ((url (find-feed-from-atom-feed-entry album +ATOM-TAG-FEED+))
