@@ -31,6 +31,7 @@
                                      (:file "picasa-package")
                                      (:file "contacts-package")
                                      (:file "issue-tracker-package")
+                                     (:file "cl-gdata-user")
                                      (:file "misc")
                                      (:file "xml-misc")
                                      (:file "cl-gdata")
