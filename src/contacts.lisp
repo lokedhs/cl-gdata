@@ -27,7 +27,7 @@
 		 :documentation "Content of the <gd:name><gd:familyName> node")
    (email        :type list
 		 :reader contact-email
-                 :node ("gd:email" "@rel" "@address")
+                 :node ("gd:email" "@rel" "@address" ("@primary" :true-false))
                  :node-collectionp t
 		 :documentation "Alist of email addresses")
    (phone-number :type list

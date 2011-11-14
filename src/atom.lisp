@@ -141,8 +141,15 @@ node: \"rel\", \"type\", \"href\".")
                  
 
 (defun %read-subpaths (pathlist node)
-  (mapcar #'(lambda (path)
-              (dom:node-value (xpath:first-node (xpath:evaluate path node))))
+  (mapcar #'(lambda (descriptor)
+              ;; The subpath can either be a string designating an xpath that specified string data,
+              ;; or a list with two elements, an xpath and a type designator
+              (let* ((path (if (listp descriptor) (car descriptor) descriptor))
+                     (type (if (listp descriptor) (cadr descriptor) nil))
+                     (n (xpath:first-node (xpath:evaluate path node))))
+                (if n
+                    (parse-text-value (dom:node-value n) type)
+                    nil)))
           pathlist))
 
 (defmethod initialize-instance :after ((obj atom-feed-entry) &key node-dom &allow-other-keys)
