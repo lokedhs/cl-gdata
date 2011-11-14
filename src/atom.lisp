@@ -57,7 +57,9 @@ node: \"rel\", \"type\", \"href\".")
    (field-node-type        :initarg :node-type
                            :accessor field-node-type)
    (field-node-default     :initarg :node-default
-                           :accessor node-default)))
+                           :accessor node-default)
+   (field-node-updatable   :initarg :node-updatable
+                           :accessor node-updatable)))
 
 (defclass atom-feed-entry-direct-slot-definition (atom-feed-entry-slot-definition-mixin
                                                   closer-mop:standard-direct-slot-definition)
@@ -88,6 +90,7 @@ node: \"rel\", \"type\", \"href\".")
     (setf (node-collectionp result) (ensure-slot-value (car direct-slots) 'field-node-collectionp))
     (setf (node-default result) (ensure-slot-value (car direct-slots) 'field-node-default))
     (setf (field-node-type result) (ensure-slot-value (car direct-slots) 'field-node-type))
+    (setf (node-updatable result) (ensure-slot-value (car direct-slots) 'field-node-updatable))
     result))
 
 (defclass atom-feed-entry ()
@@ -116,6 +119,26 @@ node: \"rel\", \"type\", \"href\".")
                                                       ((equal value "false") nil)
                                                       (t (error "Unexpected value: ~s" value))))
   (:method (value (typename t)) (error "Illegal type name: ~s" typename)))
+
+(defgeneric update-feed-entry-node (element)
+  (:documentation "Update the undelying DOM node to reflect any changes to the entry."))
+
+(defmethod update-feed-entry-node ((element atom-feed-entry))
+  (with-gdata-namespaces
+    (let ((class (class-of element))
+          (node (feed-entry-node-dom element)))
+      (dolist (slot (closer-mop:class-slots class))
+        (let* ((node-descriptor (field-node slot))
+               (collectionp (node-collectionp slot)))
+          (cond ((null node-descriptor)
+                 nil)
+                ((and (stringp node-descriptor) (not collectionp))
+                 (setf (dom:node-value (xpath:first-node (xpath:evaluate node-descriptor node)))
+                       (closer-mop:slot-value-using-class class element slot)))
+                (t
+                 (format *debug-io* "~&Unsupported slot format: ~s~%" slot)))))
+      node)))
+                 
 
 (defun %read-subpaths (pathlist node)
   (mapcar #'(lambda (path)

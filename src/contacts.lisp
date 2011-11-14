@@ -13,14 +13,17 @@
   ((full-name    :type (or null string)
 		 :reader contact-full-name
                  :node "gd:name/gd:fullName/text()"
+                 :node-updatable t
 		 :documentation "Content of the <gd:name><gd:fullName> node")
    (given-name   :type (or null string)
-		 :reader contact-given-name
+		 :accessor contact-given-name
                  :node "gd:name/gd:givenName/text()"
+                 :node-updatable t
 		 :documentation "Content of the <gd:name><gd:givenName> node")
    (family-name  :type (or null string)
 		 :reader contact-family-name
                  :node "gd:name/gd:familyName/text()"
+                 :node-updatable t
 		 :documentation "Content of the <gd:name><gd:familyName> node")
    (email        :type list
 		 :reader contact-email
