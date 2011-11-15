@@ -50,16 +50,18 @@ node: \"rel\", \"type\", \"href\".")
   t)
 
 (defclass atom-feed-entry-slot-definition-mixin ()
-  ((field-node             :initarg :node
-                           :accessor field-node)
-   (field-node-collectionp :initarg :node-collectionp
-                           :accessor node-collectionp)
-   (field-node-type        :initarg :node-type
-                           :accessor field-node-type)
-   (field-node-default     :initarg :node-default
-                           :accessor node-default)
-   (field-node-updatable   :initarg :node-updatable
-                           :accessor node-updatable)))
+  ((field-node                  :initarg :node
+                                :accessor field-node)
+   (field-node-collectionp      :initarg :node-collectionp
+                                :accessor node-collectionp)
+   (field-node-type             :initarg :node-type
+                                :accessor field-node-type)
+   (field-node-default          :initarg :node-default
+                                :accessor node-default)
+   (field-node-clear-function   :initarg :node-clear-function
+                                :accessor node-clear-function)
+   (field-node-updater-function :initarg :node-updater-function
+                                :accessor node-updater-function)))
 
 (defclass atom-feed-entry-direct-slot-definition (atom-feed-entry-slot-definition-mixin
                                                   closer-mop:standard-direct-slot-definition)
@@ -90,7 +92,8 @@ node: \"rel\", \"type\", \"href\".")
     (setf (node-collectionp result) (ensure-slot-value (car direct-slots) 'field-node-collectionp))
     (setf (node-default result) (ensure-slot-value (car direct-slots) 'field-node-default))
     (setf (field-node-type result) (ensure-slot-value (car direct-slots) 'field-node-type))
-    (setf (node-updatable result) (ensure-slot-value (car direct-slots) 'field-node-updatable))
+    (setf (node-clear-function result) (ensure-slot-value (car direct-slots) 'field-node-clear-function))
+    (setf (node-updater-function result) (ensure-slot-value (car direct-slots) 'field-node-updater-function))
     result))
 
 (defclass atom-feed-entry ()
@@ -120,23 +123,36 @@ node: \"rel\", \"type\", \"href\".")
                                                       (t (error "Unexpected value: ~s" value))))
   (:method (value (typename t)) (error "Illegal type name: ~s" typename)))
 
-(defgeneric update-feed-entry-node (element)
+(defgeneric update-feed-entry-node (element destination-doc)
   (:documentation "Update the undelying DOM node to reflect any changes to the entry."))
 
-(defmethod update-feed-entry-node ((element atom-feed-entry))
+(defmethod update-feed-entry-node ((element atom-feed-entry) destination-doc)
   (with-gdata-namespaces
-    (let ((class (class-of element))
-          (node (feed-entry-node-dom element)))
+    (let* ((class (class-of element))
+           (old-node (feed-entry-node-dom element))
+           (node (dom:import-node destination-doc old-node t)))
+
       (dolist (slot (closer-mop:class-slots class))
         (let* ((node-descriptor (field-node slot))
-               (collectionp (node-collectionp slot)))
-          (cond ((null node-descriptor)
-                 nil)
+               (collectionp (node-collectionp slot))
+               (clear-function (node-clear-function slot))
+               (updater-function (node-updater-function slot)))
+
+          (when (and node-descriptor updater-function)
+            (when clear-function
+              (funcall clear-function node))
+            (let ((value (closer-mop:slot-value-using-class class element slot)))
+              (if collectionp
+                  (mapc #'(lambda (v) (funcall updater-function node v)) value)
+                  (funcall updater-function node value))))))
+
+#|
                 ((and (stringp node-descriptor) (not collectionp))
                  (setf (dom:node-value (xpath:first-node (xpath:evaluate node-descriptor node)))
                        (closer-mop:slot-value-using-class class element slot)))
                 (t
                  (format *debug-io* "~&Unsupported slot format: ~s~%" slot)))))
+|#
       node)))
                  
 
