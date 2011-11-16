@@ -53,8 +53,8 @@
                  :node ("gd:phoneNumber" "@rel" "text()")
                  :node-collectionp t
 		 :documentation "Alist of phone numbers"))
-  (:metaclass atom-feed-entry-class)
-  (:documentation "Class that represents a contact element"))
+  (:documentation "Class that represents a contact element")
+  (:metaclass atom-feed-entry-class))
 
 (defun list-all-contacts (&key (session *gdata-session*) username)
   "Return a list of all contacts for the specified user"
