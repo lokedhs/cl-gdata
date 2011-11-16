@@ -6,9 +6,10 @@
            #:+PHONE-TAG-MOBILE+
            #:+PHONE-TAG-HOME+
            #:contact
-           #:contact-full-name
-           #:contact-given-name
-           #:contact-family-name
-           #:contact-email
-           #:contact-phone-number
-           #:list-all-contacts))
+           #:list-all-contacts
+           #:phone-number
+           #:family-name
+           #:given-name
+           #:full-name
+           #:email
+           #:update-contact))
