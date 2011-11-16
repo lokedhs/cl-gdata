@@ -145,14 +145,6 @@ node: \"rel\", \"type\", \"href\".")
               (if collectionp
                   (mapc #'(lambda (v) (funcall updater-function node v slot)) value)
                   (funcall updater-function node value slot))))))
-
-#|
-                ((and (stringp node-descriptor) (not collectionp))
-                 (setf (dom:node-value (xpath:first-node (xpath:evaluate node-descriptor node)))
-                       (closer-mop:slot-value-using-class class element slot)))
-                (t
-                 (format *debug-io* "~&Unsupported slot format: ~s~%" slot)))))
-|#
       node)))
 
 (defun update-from-xpath (node entry slot-descriptor)
