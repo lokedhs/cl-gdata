@@ -30,4 +30,5 @@
            #:document-node-dom
            #:+HTTP-GDATA-USER-AGENT+
            #:feed-entry-node-dom
-           #:update-from-xpath))
+           #:update-from-xpath
+           #:update-feed-entry-node))

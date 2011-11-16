@@ -69,7 +69,7 @@
 (defun update-contact (contact &key (session *gdata-session*))
   "Update the remove contact list to reflect any local changes to the contact"
   (let ((doc (cxml-dom:create-document)))
-    (dom:append-child doc (cl-gdata-misc::update-feed-entry-node contact doc))
+    (dom:append-child doc (update-feed-entry-node contact doc))
     (let ((result (load-and-parse (find-feed-from-atom-feed-entry contact "edit")
                                   :session session
                                   :method :put
