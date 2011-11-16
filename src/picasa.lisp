@@ -195,8 +195,7 @@ the photo. SUMMARY is the summary for the photo."
                                     :method :post
                                     :additional-headers '(("MIME-Version" . "1.0"))
                                     :content-type (format nil "multipart/related; boundary=\"~a\"" boundary)
-                                    :content #'(lambda (os)
-                                                 (send-output os))
+                                    :content #'send-output
                                     :force-binary t
                                     :accepted-status '(201))))
         (with-gdata-namespaces

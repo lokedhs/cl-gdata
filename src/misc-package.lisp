@@ -29,4 +29,5 @@
            #:document-feeds
            #:document-node-dom
            #:+HTTP-GDATA-USER-AGENT+
-           #:feed-entry-node-dom))
+           #:feed-entry-node-dom
+           #:update-from-xpath))

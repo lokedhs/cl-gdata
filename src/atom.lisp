@@ -143,8 +143,8 @@ node: \"rel\", \"type\", \"href\".")
               (funcall clear-function node))
             (let ((value (closer-mop:slot-value-using-class class element slot)))
               (if collectionp
-                  (mapc #'(lambda (v) (funcall updater-function node v)) value)
-                  (funcall updater-function node value))))))
+                  (mapc #'(lambda (v) (funcall updater-function node v slot)) value)
+                  (funcall updater-function node value slot))))))
 
 #|
                 ((and (stringp node-descriptor) (not collectionp))
@@ -154,7 +154,15 @@ node: \"rel\", \"type\", \"href\".")
                  (format *debug-io* "~&Unsupported slot format: ~s~%" slot)))))
 |#
       node)))
-                 
+
+(defun update-from-xpath (node entry slot-descriptor)
+  (let* ((node-descriptor (field-node slot-descriptor)))
+    (when (node-collectionp slot-descriptor)
+      (error "~s can't be used if ~s is non-nil" 'update-from-xpath 'collectionp))
+    (unless (stringp node-descriptor)
+      (error "destructured nodes can't be updated yet"))
+    (setf (dom:node-value (xpath:first-node (xpath:evaluate node-descriptor node)))
+          entry)))
 
 (defun %read-subpaths (pathlist node)
   (mapcar #'(lambda (descriptor)
