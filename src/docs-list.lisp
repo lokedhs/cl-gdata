@@ -68,6 +68,7 @@ it into the KEYWORD package."
       (make-document-from-resource node (document-type-name-to-identifier type)))))
 
 (defun list-documents (&key (session *gdata-session*))
+  "List all the documents that belongs to the authenticated user"
   (let ((doc (load-and-parse "https://docs.google.com/feeds/default/private/full" :session session)))
     ;;    (dom:map-document (cxml:make-character-stream-sink *standard-output*) doc)
     (with-gdata-namespaces
