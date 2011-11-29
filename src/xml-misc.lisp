@@ -74,7 +74,7 @@
                         (list (let ((e (car tree)))
                                 (let ((new-node (dom:create-element-ns doc
                                                                        (find-namespace-url (car e))
-                                                                       (cadr e))))
+                                                                       (concatenate 'string (car e) ":" (cadr e)))))
                                   (loop
                                      for (name val) on (cddr e) by #'cddr
                                      do (dom:set-attribute new-node name val))
