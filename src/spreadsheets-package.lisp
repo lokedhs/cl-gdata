@@ -17,4 +17,5 @@
            #:cell-input-value
            #:cell-value
            #:cell-update-error
-           #:save-updated-cells))
+           #:save-updated-cells
+           #:map-cell-range))
