@@ -70,6 +70,5 @@ it into the KEYWORD package."
 (defun list-documents (&key (session *gdata-session*))
   "List all the documents that belongs to the authenticated user"
   (let ((doc (load-and-parse "https://docs.google.com/feeds/default/private/full" :session session)))
-    ;;    (dom:map-document (cxml:make-character-stream-sink *standard-output*) doc)
     (with-gdata-namespaces
       (xpath:map-node-set->list #'make-document-entry (xpath:evaluate "/atom:feed/atom:entry" doc)))))
