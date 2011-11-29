@@ -67,7 +67,7 @@
   (dom:map-document (cxml:make-namespace-normalizer (cxml:make-character-stream-sink stream)) doc))
 
 (defun update-contact (contact &key (session *gdata-session*))
-  "Update the remove contact list to reflect any local changes to the contact"
+  "Update the remote contact list to reflect any local changes to the contact"
   (let ((doc (cxml-dom:create-document)))
     (dom:append-child doc (update-feed-entry-node contact doc))
     (let ((result (load-and-parse (find-feed-from-atom-feed-entry contact "edit")
