@@ -221,7 +221,7 @@ node: \"rel\", \"type\", \"href\".")
   (load-atom-feed document (find-class class)))
 
 (defmethod load-atom-feed (document (class atom-feed-entry-class))
-  ;;  (dom:map-document (cxml:make-character-stream-sink *standard-output*) document)
+  ;;  (dom:map-document (cxml:make-namespace-normalizer (cxml:make-character-stream-sink *standard-output*)) document)
   (with-gdata-namespaces
     (xpath:map-node-set->list #'(lambda (n)
                                   (make-instance class :node-dom n))
