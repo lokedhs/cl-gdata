@@ -6,4 +6,5 @@
         :cl-gdata-docs-list
         :cl-gdata-spreadsheets
         :cl-gdata-picasa
-        :cl-gdata-issue-tracker))
+        :cl-gdata-issue-tracker
+        :cl-gdata-clientlogin))
