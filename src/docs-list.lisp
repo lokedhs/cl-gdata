@@ -4,31 +4,28 @@
 
 (define-constant +DOCS-THUMBNAIL+ "http://schemas.google.com/docs/2007/thumbnail")
 
-(defclass document (node-dom-mixin)
+(defclass document (atom-feed-entry)
   ((id-url             :type string
-                       :initarg :id
-                       :reader document-id-url)
+                       :reader document-id-url
+                       :node "atom:id/text()")
    (resource-id        :type string
-                       :initarg :resource-id
                        :reader document-resource-id
-                       :documentation "The resource ID of the document, from the <resource-id> node in the XML document.")
-   (title              :type string
-                       :initarg :title
-                       :reader document-title
-                       :documentation "The title of the document, from the <title> node in the XML document.")
+                       :documentation "The resource ID of the document, from the <resource-id> node in the XML document."
+                       :node "gd:resourceId/text()")
    (description        :type (or null string)
-                       :initarg :description
-                       :reader document-description)
+                       :reader document-description
+                       :node "docs:description/text()")
    (suggested-filename :type (or null string)
-                       :initarg :suggested-filename
-                       :reader document-suggested-filename)
+                       :reader document-suggested-filename
+                       :node "docs:suggestedFilename/text()")
    (updated            :type string
-                       :initarg :updated
-                       :reader document-updated)))
-
-(defmethod print-object ((obj document) out)
-  (print-unreadable-safely (title updated) obj out
-    (format out "~s UPDATED ~a" title updated)))
+                       :reader document-updated
+                       :node "atom:updated/text()")
+   (content            :type list
+                       :reader document-content
+                       :node ("atom:content" "@type" "@src")
+                       :node-collectionp t))
+  (:metaclass atom-feed-entry-class))
 
 (defgeneric make-document-from-resource (node resource-type)
   (:documentation "Create a document instance based on a specific resource type")
@@ -41,19 +38,6 @@
   "Given a document, return the id to be used in document URL's. The second
 return value is the document type."
   (values-list (reverse (split-sequence:split-sequence #\: resource-id :count 2))))
-
-(defmethod initialize-instance :after ((doc document) &rest initargs &key &allow-other-keys)
-  (declare (ignore initargs))
-  (with-gdata-namespaces
-    (labels ((text (path)
-               (get-text-from-node (xpath:first-node (xpath:evaluate path (document-node-dom doc))))))
-      (with-slots (id-url resource-id title description suggested-filename updated feeds node-dom) doc
-        (setf id-url             (text "atom:id"))
-        (setf resource-id        (text "gd:resourceId"))
-        (setf title              (text "atom:title"))
-        (setf description        (text "docs:description"))
-        (setf suggested-filename (text "docs:suggestedFilename"))
-        (setf updated            (text "atom:updated"))))))
 
 (defun document-type-name-to-identifier (name)
   "Converts the type name from the resource id to an identifier.
