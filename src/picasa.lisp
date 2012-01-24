@@ -168,7 +168,7 @@ an error will be raised."
 TYPE is the mime-type of the photo and must be one of the allowed types in *ALLOWED-IMAGE-MIME-TYPES*.
 STREAM must be a binary input stream from which to read the image data. TITLE is the title of
 the photo. SUMMARY is the summary for the photo."
-  (unless (find type *allowed-image-mime-types* :test #'equal)
+  (unless (member type *allowed-image-mime-types* :test #'equal)
     (error "Image type ~a must be one of ~s" type *allowed-image-mime-types*))
   (let ((url (find-feed-from-atom-feed-entry album +ATOM-TAG-FEED+))
         (boundary (format nil "MIME_BOUNDARY_END_~d" (random 1000000000))))

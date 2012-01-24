@@ -36,7 +36,7 @@
          (let ((decoded-stream (if (equal (cdr (assoc :content-encoding received-headers)) "gzip")
                                    (gzip-stream:make-gzip-input-stream stream)
                                    stream)))
-           (unless (find code accepted-status)
+           (unless (member code accepted-status)
              (when *verbose-http-errors*
                (format *debug-io* "~&====== ERROR OUTPUT ======~%")
                (let ((input (flexi-streams:make-flexi-stream decoded-stream
