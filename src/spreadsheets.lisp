@@ -15,7 +15,8 @@
                :reader spreadsheet-worksheets
                :documentation "A list of the worksheets in this document, or :unset if the worksheets
 has not yet been loaded."))
-  (:documentation "Class that manages the content and pending updates to a spreadsheet document."))
+  (:documentation "Class that manages the content and pending updates to a spreadsheet document.")
+  (:metaclass atom-feed-entry-class))
 
 (defmethod cl-gdata-docs-list::make-document-from-resource (node (type (eql :spreadsheet)))
   (make-instance 'spreadsheet :node-dom node))
