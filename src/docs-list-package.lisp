@@ -9,4 +9,5 @@
            #:document-suggested-filename
            #:document-updated
            #:list-documents
-           #:upload-document))
+           #:upload-document
+           #:delete-document))

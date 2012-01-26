@@ -129,3 +129,13 @@ it into the KEYWORD package."
                                         :content #'(lambda (s) (%upload-document-send-metadata s title))
                                         :additional-headers `(("X-Upload-Content-Type" . ,content-type)
                                                               ("X-Upload-Content-Length" . ,(princ-to-string length)))))))))))
+
+(defun delete-document (document &key (session *gdata-session*) (delete nil))
+    (http-request-with-stream (format nil "~a~a"
+                                      (find-feed-from-atom-feed-entry document +ATOM-TAG-EDIT+)
+                                      (if delete "?delete=true" ""))
+                              #'(lambda (s received code) (declare (ignore s received code)) nil)
+                              :session session
+                              :method :delete
+                              :additional-headers '(("If-Match" . "*"))
+                              :version "3.0"))
