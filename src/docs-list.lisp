@@ -65,14 +65,12 @@ it into the KEYWORD package."
 \(also a stream) until the end of FROM is reached, in blocks of
 8192 elements.  The streams should have the same element type."
   (let ((buf (make-array 8192
-                         :element-type (stream-element-type from)))
-        (total 0))
+                         :element-type (stream-element-type from))))
     (loop
        (let* ((n (min (length buf) limit))
               (pos (read-sequence buf from :end n)))
          (when (zerop pos) (return))
          (write-sequence buf to :end pos)
-         (incf total pos)
          (decf limit pos)
          (when (zerop limit) (return)))))
   (values))
