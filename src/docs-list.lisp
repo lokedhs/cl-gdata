@@ -2,7 +2,8 @@
 
 (declaim #.cl-gdata::*compile-decl*)
 
-(define-constant +DOCS-THUMBNAIL+ "http://schemas.google.com/docs/2007/thumbnail")
+(alexandria:define-constant +DOCS-THUMBNAIL+ "http://schemas.google.com/docs/2007/thumbnail" :test 'equal)
+(alexandria:define-constant +RESUMABLE-CREATE-MEDIA-REF+ "http://schemas.google.com/g/2005#resumable-create-media" :test 'equal)
 
 (defclass document (atom-feed-entry)
   ((id-url             :type string
@@ -56,3 +57,74 @@ it into the KEYWORD package."
   (let ((doc (load-and-parse "https://docs.google.com/feeds/default/private/full" :session session)))
     (with-gdata-namespaces
       (xpath:map-node-set->list #'make-document-entry (xpath:evaluate "/atom:feed/atom:entry" doc)))))
+
+(defun copy-stream-with-limit (from to limit)
+  "Copies a maximum of LIMIT elements into TO \(a stream) from FROM
+\(also a stream) until the end of FROM is reached, in blocks of
+8192 elements.  The streams should have the same element type."
+  (format t "will write to stream with limit=~a~%" limit)
+  (let ((buf (make-array 8192
+                         :element-type (stream-element-type from)))
+        (total 0))
+    (loop
+       (let* ((n (min (length buf) limit))
+              (pos (read-sequence buf from :end n)))
+         (when (zerop pos) (return))
+         (write-sequence buf to :end pos)
+         (incf total pos)
+         (format t "wrote ~a, total now ~a~%" pos total)
+         (decf limit pos)
+         (when (zerop limit) (return))))
+    (format t "finished copy. final total=~a~%" total))
+  (values))
+
+(defun upload-document (file title &key (session *gdata-session*) (chunk-size (* 512 1024)) (convert nil)
+                                     (content-type "application/octet-stream"))
+  "Upload a document to Google."
+  (unless (and (plusp chunk-size)
+               (zerop (mod chunk-size (* 512 1024))))
+    (error "CHUNK-SIZE must be greater than zero and a multiple of 512 kB"))
+
+  (let ((doc (load-and-parse "https://docs.google.com/feeds/default/private/full" :session session)))
+    (with-gdata-namespaces                                             
+
+      (let ((upload-url (value-by-xpath (format nil "/atom:feed/atom:link[@rel='~a']/@href" +RESUMABLE-CREATE-MEDIA-REF+) doc)))
+        (with-open-file (input-stream file :element-type '(unsigned-byte 8))
+          (let ((length (file-length input-stream)))
+            (labels ((send-output (stream)
+                       (build-atom-xml-stream `(("atom" "entry")
+                                                (("atom" "title") ,title))
+                                              stream))
+
+                     (upload-next-chunk (result-stream headers start-offset)
+                       (display-stream-if-debug result-stream)
+                       (format *debug-io* "~&upload next chunk. off=~s headers=~s~%" start-offset headers)
+                       (let ((location (cdr (assoc :location headers)))
+                             (content-length (min (- length start-offset) chunk-size)))
+                         (http-request-with-stream location
+                                                   #'(lambda (result-stream headers code)
+                                                       (format t "got code: ~a~%" code)
+                                                       (upload-next-chunk result-stream headers (+ start-offset chunk-size)))
+                                                   :session session
+                                                   :method :put
+                                                   :version "3.0"
+                                                   :content-type content-type
+                                                   :content-length content-length
+                                                   :content #'(lambda (s) (copy-stream-with-limit input-stream s chunk-size))
+                                                   :accepted-status '(201 308)
+                                                   :additional-headers `(("Content-Range" . ,(format nil "bytes ~a-~a/~a"
+                                                                                                     start-offset
+                                                                                                     (1- (+ start-offset content-length))
+                                                                                                     length)))))))
+
+              (http-request-with-stream (format nil "~a~a" upload-url (if convert "" "?convert=false"))
+                                        #'(lambda (result-stream headers code)
+                                            (declare (ignore code))
+                                            (upload-next-chunk result-stream headers 0))
+                                        :session session
+                                        :method :post
+                                        :version "3.0"
+                                        :content-type "application/atom+xml"
+                                        :content #'send-output
+                                        :additional-headers `(("X-Upload-Content-Type" . ,content-type)
+                                                              ("X-Upload-Content-Length" . ,(princ-to-string length)))))))))))

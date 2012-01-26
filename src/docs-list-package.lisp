@@ -8,4 +8,5 @@
            #:document-description
            #:document-suggested-filename
            #:document-updated
-           #:list-documents))
+           #:list-documents
+           #:upload-document))

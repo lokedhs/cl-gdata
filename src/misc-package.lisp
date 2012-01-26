@@ -31,4 +31,6 @@
            #:+HTTP-GDATA-USER-AGENT+
            #:feed-entry-node-dom
            #:update-from-xpath
-           #:update-feed-entry-node))
+           #:update-feed-entry-node
+           #:value-by-xpath
+           #:display-stream-if-debug))

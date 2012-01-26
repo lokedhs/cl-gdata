@@ -97,9 +97,9 @@ contains the authentication key as the value")))
                                   &key
                                   (method :get) (parameters nil) (content nil) (want-stream nil)
                                   (content-type nil) (additional-headers nil) (user-agent "cl-gdata")
-                                  (force-binary nil))
+                                  (force-binary nil) (content-length nil))
   (let ((auth-string (login-if-needed session (resolve-service-name-from-url url))))
-    (drakma:http-request url
+    (apply #'drakma:http-request url
                          :method method
                          :parameters parameters
                          :additional-headers (append `(("Authorization" . ,(concatenate 'string
@@ -110,4 +110,5 @@ contains the authentication key as the value")))
                          :user-agent user-agent
                          :content-type (or content-type "application/x-www-form-urlencoded")
                          :content content
-                         :force-binary force-binary)))
+                         :force-binary force-binary
+                         (append (if content-length (list :content-length content-length) nil)))))
