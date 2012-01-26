@@ -81,6 +81,11 @@ it into the KEYWORD package."
   (let ((doc (cxml:parse-stream stream (cxml-dom:make-dom-builder))))
     (make-document-entry (xpath:first-node (xpath:evaluate "/atom:entry" doc)))))
 
+(defun %upload-document-send-metadata (stream title)
+  (build-atom-xml-stream `(("atom" "entry")
+                           (("atom" "title") ,title))
+                         stream))
+
 (defun upload-document (file title &key (session *gdata-session*) (chunk-size (* 512 1024)) (convert nil)
                                      (content-type "application/octet-stream"))
   "Upload a document to Google."
@@ -94,16 +99,8 @@ it into the KEYWORD package."
       (let ((upload-url (value-by-xpath (format nil "/atom:feed/atom:link[@rel='~a']/@href" +RESUMABLE-CREATE-MEDIA-REF+) doc)))
         (with-open-file (input-stream file :element-type '(unsigned-byte 8))
           (let ((length (file-length input-stream)))
-            (labels ((send-output (stream)
-                       (build-atom-xml-stream `(("atom" "entry")
-                                                (("atom" "title") ,title))
-                                              stream))
-
-                     (upload-next-chunk (result-stream headers start-offset previous-location)
+            (labels ((upload-next-chunk (result-stream headers start-offset previous-location)
                        (declare (ignore result-stream))
-                       ;; Flush the result stream
-                       ;;(cl-fad:copy-stream result-stream (make-broadcast-stream))
-
                        (let ((location (or (cdr (assoc :location headers)) previous-location))
                              (content-length (min (- length start-offset) chunk-size)))
                          (http-request-with-stream location
@@ -131,6 +128,6 @@ it into the KEYWORD package."
                                         :method :post
                                         :version "3.0"
                                         :content-type "application/atom+xml"
-                                        :content #'send-output
+                                        :content #'(lambda (s) (%upload-document-send-metadata s title))
                                         :additional-headers `(("X-Upload-Content-Type" . ,content-type)
                                                               ("X-Upload-Content-Length" . ,(princ-to-string length)))))))))))
