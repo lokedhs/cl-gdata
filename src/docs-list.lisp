@@ -33,6 +33,8 @@
   (:method (node resource-type)
     (error "Initialisation method for resource type ~s not available" resource-type))
   (:method (node (resource-type (eql :document)))
+    (make-instance 'document :node-dom node))
+  (:method (node (resource-type (eql :file)))
     (make-instance 'document :node-dom node)))
 
 (defun parse-resource-id (resource-id)
@@ -62,7 +64,6 @@ it into the KEYWORD package."
   "Copies a maximum of LIMIT elements into TO \(a stream) from FROM
 \(also a stream) until the end of FROM is reached, in blocks of
 8192 elements.  The streams should have the same element type."
-  (format t "will write to stream with limit=~a~%" limit)
   (let ((buf (make-array 8192
                          :element-type (stream-element-type from)))
         (total 0))
@@ -72,11 +73,13 @@ it into the KEYWORD package."
          (when (zerop pos) (return))
          (write-sequence buf to :end pos)
          (incf total pos)
-         (format t "wrote ~a, total now ~a~%" pos total)
          (decf limit pos)
-         (when (zerop limit) (return))))
-    (format t "finished copy. final total=~a~%" total))
+         (when (zerop limit) (return)))))
   (values))
+
+(defun parse-result-stream (stream)
+  (let ((doc (cxml:parse-stream stream (cxml-dom:make-dom-builder))))
+    (make-document-entry (xpath:first-node (xpath:evaluate "/atom:entry" doc)))))
 
 (defun upload-document (file title &key (session *gdata-session*) (chunk-size (* 512 1024)) (convert nil)
                                      (content-type "application/octet-stream"))
@@ -96,15 +99,18 @@ it into the KEYWORD package."
                                                 (("atom" "title") ,title))
                                               stream))
 
-                     (upload-next-chunk (result-stream headers start-offset)
-                       (display-stream-if-debug result-stream)
-                       (format *debug-io* "~&upload next chunk. off=~s headers=~s~%" start-offset headers)
-                       (let ((location (cdr (assoc :location headers)))
+                     (upload-next-chunk (result-stream headers start-offset previous-location)
+                       (declare (ignore result-stream))
+                       ;; Flush the result stream
+                       ;;(cl-fad:copy-stream result-stream (make-broadcast-stream))
+
+                       (let ((location (or (cdr (assoc :location headers)) previous-location))
                              (content-length (min (- length start-offset) chunk-size)))
                          (http-request-with-stream location
                                                    #'(lambda (result-stream headers code)
-                                                       (format t "got code: ~a~%" code)
-                                                       (upload-next-chunk result-stream headers (+ start-offset chunk-size)))
+                                                       (case code
+                                                         (308 (upload-next-chunk result-stream headers (+ start-offset chunk-size) location))
+                                                         (201 (parse-result-stream result-stream))))
                                                    :session session
                                                    :method :put
                                                    :version "3.0"
@@ -120,7 +126,7 @@ it into the KEYWORD package."
               (http-request-with-stream (format nil "~a~a" upload-url (if convert "" "?convert=false"))
                                         #'(lambda (result-stream headers code)
                                             (declare (ignore code))
-                                            (upload-next-chunk result-stream headers 0))
+                                            (upload-next-chunk result-stream headers 0 nil))
                                         :session session
                                         :method :post
                                         :version "3.0"
