@@ -79,12 +79,14 @@ it into the KEYWORD package."
   (let ((doc (cxml:parse-stream stream (cxml-dom:make-dom-builder))))
     (make-document-entry (xpath:first-node (xpath:evaluate "/atom:entry" doc)))))
 
-(defun %upload-document-send-metadata (stream title)
+(defun %upload-document-send-metadata (stream title description)
   (build-atom-xml-stream `(("atom" "entry")
-                           (("atom" "title") ,title))
+                           (("atom" "title") ,title)
+                           ,@(when description `((("docs" "description") ,description))))
                          stream))
 
-(defun upload-document (file title &key (session *gdata-session*) (chunk-size (* 512 1024)) (convert nil)
+(defun upload-document (file &key title description
+                               (session *gdata-session*) (chunk-size (* 512 1024)) (convert nil)
                                      (content-type "application/octet-stream"))
   "Upload a document to Google."
   (unless (and (plusp chunk-size)
@@ -126,7 +128,11 @@ it into the KEYWORD package."
                                         :method :post
                                         :version "3.0"
                                         :content-type "application/atom+xml"
-                                        :content #'(lambda (s) (%upload-document-send-metadata s title))
+                                        :content #'(lambda (s)
+                                                     (%upload-document-send-metadata s
+                                                                                     (or title
+                                                                                         (name-from-filename file))
+                                                                                     description))
                                         :additional-headers `(("X-Upload-Content-Type" . ,content-type)
                                                               ("X-Upload-Content-Length" . ,(princ-to-string length)))))))))))
 

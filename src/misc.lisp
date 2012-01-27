@@ -31,3 +31,7 @@
 
 (defmacro check-range (place min max)
   `(%perform-check-range ',place ,place ,min ,max))
+
+(defun name-from-filename (file)
+  "Returns the name part of FILE. FILE can be either a string or a pathspec."
+  (pathname-name (parse-namestring file)))

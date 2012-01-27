@@ -33,4 +33,5 @@
            #:update-from-xpath
            #:update-feed-entry-node
            #:value-by-xpath
-           #:display-stream-if-debug))
+           #:display-stream-if-debug
+           #:name-from-filename))
