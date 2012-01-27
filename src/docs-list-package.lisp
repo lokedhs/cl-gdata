@@ -10,4 +10,5 @@
            #:document-updated
            #:list-documents
            #:upload-document
-           #:delete-document))
+           #:delete-document
+           #:download-document))

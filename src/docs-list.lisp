@@ -145,3 +145,17 @@ it into the KEYWORD package."
                               :method :delete
                               :additional-headers '(("If-Match" . "*"))
                               :version "3.0"))
+
+(defun download-document (document destination &key (session *gdata-session*))
+  "Downloads DOCUMENT. DESTINATION is a function which will be called with
+an input stream as an argument."
+  (with-gdata-namespaces
+    (let ((url (dom:get-attribute (xpath:first-node (xpath:evaluate "atom:content[@type='application/atom+xml']"
+                                                                    (feed-entry-node-dom document)))
+                                  "src")))
+      (http-request-with-stream url #'(lambda (s receieved code)
+                                        (declare (ignore receieved code))
+                                        (funcall destination s))
+                                :session session
+                                :force-binary t
+                                :version "3.0"))))

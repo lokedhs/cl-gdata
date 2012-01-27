@@ -75,23 +75,26 @@ contains the authentication key as the value")))
   (format t "Enter new service name: ")
   (list (read-line)))
 
-(defun resolve-service-name-from-url (url)
-  (flet ((starts-with (candidate prefix)
-           (and (>= (length candidate) (length prefix))
-                (string= prefix (subseq candidate 0 (length prefix))))))
+(defparameter *service-name-map*
+  (let ((m '(("^https://docs.google.com/feeds.*" "writely")
+             ("^https://spreadsheets.google.com/feeds.*" "wise")
+             ("^https://www.google.com/m8/feeds.*" "cp")
+             ("^https://picasaweb.google.com/data/.*" "lh2")
+             ("^https?://code.google.com/feeds.*" "code")
+             ("^https://[^.]+.googleusercontent.com/docs/.*" "writely"))))
+    (mapcar #'(lambda (v) (list (cl-ppcre:create-scanner (car v)) (cadr v))) m)))
 
-    (restart-case
-        (cond ((starts-with url "https://docs.google.com/feeds") "writely")
-              ((starts-with url "https://spreadsheets.google.com/feeds") "wise")
-              ((starts-with url "https://www.google.com/m8/feeds") "cp")
-              ((starts-with url "https://picasaweb.google.com/data/") "lh2")
-              ((starts-with url "https://code.google.com/feeds") "code")
-              ((starts-with url "http://code.google.com/feeds") "code")
-              (t (error 'missing-service-name :url url)))
-      (specify-service-name (new-service-name)
-        :report "Specify new service name"
-        :interactive read-new-service-name
-        new-service-name))))
+(defun resolve-service-name-from-url (url)
+  (restart-case
+      (loop
+         for (regex key) in *service-name-map*
+         if (cl-ppcre:scan regex url)
+         return key
+         finally (error 'missing-service-name :url url))
+    (specify-service-name (new-service-name)
+      :report "Specify new service name"
+      :interactive read-new-service-name
+      new-service-name)))
 
 (defmethod authenticated-request (url (session clientlogin-session)
                                   &key
