@@ -14,7 +14,7 @@
   (:documentation "Class that represents a single album")
   (:metaclass atom-feed-entry-class))
 
-(defun list-all-albums (&key (session *gdata-session*) user)
+(defun list-albums (&key (session *gdata-session*) user)
   "Return a list of all accessible albums for a user. USER indicates the
 username whose albmus should be retrieved. Defaults to the current user."
   (load-atom-feed-url (format nil "https://picasaweb.google.com/data/feed/api/user/~a"

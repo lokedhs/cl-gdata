@@ -5,11 +5,11 @@
            #:+EMAIL-TAG-OTHER+
            #:+PHONE-TAG-MOBILE+
            #:+PHONE-TAG-HOME+
-           #:contact
-           #:list-all-contacts
+           #:contact 
            #:phone-number
            #:family-name
            #:given-name
            #:full-name
            #:email
-           #:update-contact))
+           #:update-contact
+           #:list-contacts))

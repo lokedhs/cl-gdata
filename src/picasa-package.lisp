@@ -1,7 +1,6 @@
 (defpackage :cl-gdata-picasa
   (:use :cl :cl-gdata :cl-gdata-misc)
-  (:export #:album
-           #:list-all-albums
+  (:export #:album 
            #:photo
            #:photo-published
            #:photo-summary
@@ -29,4 +28,5 @@
            #:photo-image-types
            #:download-photo-to-stream
            #:download-photo-to-file
-           #:upload-photo))
+           #:upload-photo
+           #:list-albums))
