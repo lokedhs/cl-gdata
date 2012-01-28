@@ -100,4 +100,7 @@
   (dom:map-document (cxml:make-namespace-normalizer (cxml:make-character-stream-sink stream)) doc))
 
 (defun value-by-xpath (expression node)
-  (dom:node-value (xpath:first-node (xpath:evaluate expression node))))
+  (let ((result (xpath:evaluate expression node)))
+    (when (xpath:node-set-empty-p result)
+      (error "No value found for expression: ~s" expression))
+    (dom:node-value (xpath:first-node result))))

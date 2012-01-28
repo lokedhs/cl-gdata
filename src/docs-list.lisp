@@ -4,6 +4,7 @@
 
 (alexandria:define-constant +DOCS-THUMBNAIL+ "http://schemas.google.com/docs/2007/thumbnail" :test 'equal)
 (alexandria:define-constant +RESUMABLE-CREATE-MEDIA-REF+ "http://schemas.google.com/g/2005#resumable-create-media" :test 'equal)
+(alexandria:define-constant +DOCS-ACCESS-CONTROL-FEED+ "http://schemas.google.com/acl/2007#accessControlList" :test 'equal)
 
 (defclass document (atom-feed-entry)
   ((id-url             :type string

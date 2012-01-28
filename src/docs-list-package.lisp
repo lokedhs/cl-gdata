@@ -11,4 +11,5 @@
            #:list-documents
            #:upload-document
            #:delete-document
-           #:download-document))
+           #:download-document
+           #:list-doc-acls))

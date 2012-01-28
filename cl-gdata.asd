@@ -40,6 +40,7 @@
                                      (:file "clientlogin-auth")
                                      (:file "atom")
                                      (:file "docs-list")
+                                     (:file "docs-access")
                                      (:file "spreadsheets")
                                      (:file "contacts")
                                      (:file "picasa")

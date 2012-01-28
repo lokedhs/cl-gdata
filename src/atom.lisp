@@ -39,6 +39,26 @@ node: \"rel\", \"type\", \"href\".")
     (caddr found-feed)))
 
 ;;;
+;;; Feed class
+;;;
+
+(defclass feed (node-dom-mixin)
+  ((etag       :type string
+               :reader feed-etag)
+   (entry-list :type list
+               :reader feed-entry-list)
+   (entry-type :type symbol
+               :initarg :entry-type
+               :initform (error "~s needed when instantiating ~s" :entry-type 'feed)
+               :reader feed-entry-type))
+  (:documentation "Class that holds the data for an entire feed."))
+
+(defmethod initialize-instance :after ((obj feed) &key &allow-other-keys)
+  (with-gdata-namespaces
+    (setf (slot-value obj 'etag) (value-by-xpath "/atom:feed/@gd:etag" (document-node-dom obj)))
+    (setf (slot-value obj 'entry-list) (load-atom-feed (document-node-dom obj) (feed-entry-type obj)))))
+
+;;;
 ;;; MOP stuff
 ;;;
 
@@ -229,3 +249,7 @@ node: \"rel\", \"type\", \"href\".")
 
 (defun load-atom-feed-url (url class &key (session *gdata-session*) (version "3.0"))
   (load-atom-feed (load-and-parse url :session session :version version) class))
+
+(defun load-feed (url class &key (session *gdata-session*) (version "3.0"))
+  (let ((doc (load-and-parse url :session session :version version)))
+    (make-instance 'feed :node-dom doc :entry-type class)))
