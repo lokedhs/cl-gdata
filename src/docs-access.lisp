@@ -11,7 +11,7 @@ the user is the owner.")
    (scope :type list
           :reader access-scope
           :node ("gAcl:scope" "@type" "@value" "@name")
-          :documentation "A lsit of three elements representing the values of the gAcl:scope node.
+          :documentation "A list of three elements representing the values of the gAcl:scope node.
 The elements in the list are the content of the type, value and name attributes."))
   (:metaclass atom-feed-entry-class))
 
