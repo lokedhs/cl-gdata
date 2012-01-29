@@ -3,11 +3,16 @@
 (declaim #.cl-gdata::*compile-decl*)
 
 (defclass access (atom-feed-entry)
-  ((role :type (member :reader :writer :owner)
-         :reader access-role
-         :documentation "The access role. Either :READER which means read-only access,
-:WRITER which means full read and write access, or :OWNER which indicates
-that the user is the owner of the document."))
+  ((role  :type (member :reader :writer :owner)
+          :reader access-role
+          :documentation "The access role. Either :READER which means read-only access,
+:WRITER which means full read and write access, or :OWNER meaning that the given
+the user is the owner.")
+   (scope :type list
+          :reader access-scope
+          :node ("gAcl:scope" "@type" "@value" "@name")
+          :documentation "A lsit of three elements representing the values of the gAcl:scope node.
+The elements in the list are the content of the type, value and name attributes."))
   (:metaclass atom-feed-entry-class))
 
 (defmethod initialize-instance :after ((obj access) &key &allow-other-keys)
