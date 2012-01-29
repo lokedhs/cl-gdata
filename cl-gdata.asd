@@ -21,7 +21,8 @@
                :closer-mop
                :cl-fad
                :trivial-utf-8
-               :alexandria)
+               :alexandria
+               :string-case)
   :components ((:module src
                         :serial t
                         :components ((:file "package")
