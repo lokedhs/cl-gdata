@@ -2,10 +2,10 @@
 
 (declaim #.cl-gdata::*compile-decl*)
 
-(define-constant +ATOM-TAG-FEED+ "http://schemas.google.com/g/2005#feed")
-(define-constant +ATOM-TAG-EDIT+ "edit")
+(alexandria:define-constant +ATOM-TAG-FEED+ "http://schemas.google.com/g/2005#feed" :test 'equal)
+(alexandria:define-constant +ATOM-TAG-EDIT+ "edit" :test 'equal)
 
-(define-constant +ATOM-XML-MIME-TYPE+ "application/atom+xml")
+(alexandria:define-constant +ATOM-XML-MIME-TYPE+ "application/atom+xml" :test 'equal)
 
 (defclass node-dom-mixin ()
   ((feeds    :type list

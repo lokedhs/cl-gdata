@@ -2,7 +2,7 @@
 
 (declaim #.cl-gdata::*compile-decl*)
 
-(define-constant +HTTP-GDATA-USER-AGENT+ "cl-gdata (gzip)")
+(alexandria:define-constant +HTTP-GDATA-USER-AGENT+ "cl-gdata (gzip)" :test 'equal)
 
 (defgeneric authenticated-request (url session
                                        &key method parameters content want-stream

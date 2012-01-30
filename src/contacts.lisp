@@ -2,12 +2,12 @@
 
 (declaim #.cl-gdata::*compile-decl*)
 
-(define-constant +EMAIL-TAG-HOME+ "http://schemas.google.com/g/2005#home")
-(define-constant +EMAIL-TAG-WORK+ "http://schemas.google.com/g/2005#work")
-(define-constant +EMAIL-TAG-OTHER+ "http://schemas.google.com/g/2005#other")
+(alexandria:define-constant +EMAIL-TAG-HOME+ "http://schemas.google.com/g/2005#home" :test 'equal)
+(alexandria:define-constant +EMAIL-TAG-WORK+ "http://schemas.google.com/g/2005#work" :test 'equal)
+(alexandria:define-constant +EMAIL-TAG-OTHER+ "http://schemas.google.com/g/2005#other" :test 'equal)
 
-(define-constant +PHONE-TAG-MOBILE+ "http://schemas.google.com/g/2005#mobile")
-(define-constant +PHONE-TAG-HOME+ "http://schemas.google.com/g/2005#home")
+(alexandria:define-constant +PHONE-TAG-MOBILE+ "http://schemas.google.com/g/2005#mobile" :test 'equal)
+(alexandria:define-constant +PHONE-TAG-HOME+ "http://schemas.google.com/g/2005#home" :test 'equal)
 
 (defun clear-email (node)
   (with-gdata-namespaces

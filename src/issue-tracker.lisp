@@ -2,7 +2,7 @@
 
 (declaim #.cl-gdata::*compile-decl*)
 
-(define-constant +COMMENTS-TAG-FEED+ "replies")
+(alexandria:define-constant +COMMENTS-TAG-FEED+ "replies" :test 'equal)
 
 (defclass atom-author-mixin ()
   ((author-name    :type string

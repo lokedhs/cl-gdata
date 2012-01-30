@@ -1,7 +1,6 @@
 (defpackage :cl-gdata-misc
   (:use :cl :cl-gdata)
-  (:export #:define-constant
-           #:print-unreadable-safely
+  (:export #:print-unreadable-safely
            #:check-range
            #:authenticated-request
            #:http-request-with-stream

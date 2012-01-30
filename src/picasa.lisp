@@ -161,7 +161,7 @@ an error will be raised."
                        :element-type '(unsigned-byte 8))
     (download-photo-to-stream photo out :type type)))
 
-(define-constant +CRLF+ (format nil "~c~c" #\Return #\Newline))
+(alexandria:define-constant +CRLF+ (format nil "~c~c" #\Return #\Newline) :test 'equal)
 
 (defun upload-photo (album type stream title &key (session *gdata-session*) summary)
   "Upload a photo to Picasa. ALBUM indicates the album the the photo should be uploaded to.
