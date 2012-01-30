@@ -12,5 +12,4 @@
            #:upload-document
            #:delete-document
            #:download-document
-           #:list-doc-acls
-           #:access))
+           #:list-doc-acls))
