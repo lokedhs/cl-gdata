@@ -12,4 +12,5 @@
            #:upload-document
            #:delete-document
            #:download-document
-           #:list-doc-acls))
+           #:list-doc-acls
+           #:folder))

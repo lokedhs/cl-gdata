@@ -29,6 +29,10 @@
                        :node-collectionp t))
   (:metaclass atom-feed-entry-class))
 
+(defclass folder (atom-feed-entry)
+  ()
+  (:metaclass atom-feed-entry-class))
+
 (defgeneric make-document-from-resource (node resource-type)
   (:documentation "Create a document instance based on a specific resource type")
   (:method (node resource-type)
@@ -36,7 +40,9 @@
   (:method (node (resource-type (eql :document)))
     (make-instance 'document :node-dom node))
   (:method (node (resource-type (eql :file)))
-    (make-instance 'document :node-dom node)))
+    (make-instance 'document :node-dom node))
+  (:method (node (resource-type (eql :folder)))
+    (make-instance 'folder :node-dom node)))
 
 (defun parse-resource-id (resource-id)
   "Given a document, return the id to be used in document URL's. The second
@@ -55,9 +61,19 @@ it into the KEYWORD package."
            (type (nth-value 1 (parse-resource-id resource-id))))
       (make-document-from-resource node (document-type-name-to-identifier type)))))
 
-(defun list-documents (&key (session *gdata-session*))
+(defun list-documents (&key (session *gdata-session*) max-results showfolders)
   "List all the documents that belongs to the authenticated user"
-  (let ((doc (load-and-parse "https://docs.google.com/feeds/default/private/full" :session session)))
+  (let ((doc (load-and-parse (with-output-to-string (out)
+                               (format out "https://docs.google.com/feeds/default/private/full")
+                               (loop
+                                  with first = t
+                                  for (key . value) in (list (cons "max-results" max-results)
+                                                             (cons "showfolders" (when showfolders "true")))
+                                  if value
+                                  do (progn
+                                       (format out "~a~a=~a" (if first "?" "&") key value)
+                                       (setq first nil))))
+                             :session session)))
     (with-gdata-namespaces
       (xpath:map-node-set->list #'make-document-entry (xpath:evaluate "/atom:feed/atom:entry" doc)))))
 
