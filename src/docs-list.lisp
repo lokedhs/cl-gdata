@@ -61,10 +61,20 @@ it into the KEYWORD package."
            (type (nth-value 1 (parse-resource-id resource-id))))
       (make-document-from-resource node (document-type-name-to-identifier type)))))
 
-(defun list-documents (&key (session *gdata-session*) max-results showfolders)
+(defun type-string-for-type (type)
+  (ecase type
+    (:document "document")
+    (:spreadsheet "spreadsheet")
+    (:presentation "presentation")
+    (:drawing "drawing")
+    (:folder "folder")))
+
+(defun list-documents (&key (session *gdata-session*) max-results showfolders type)
   "List all the documents that belongs to the authenticated user"
   (let ((doc (load-and-parse (with-output-to-string (out)
                                (format out "https://docs.google.com/feeds/default/private/full")
+                               (when type
+                                 (format out "/-/~a" (type-string-for-type type)))
                                (loop
                                   with first = t
                                   for (key . value) in (list (cons "max-results" max-results)

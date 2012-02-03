@@ -32,7 +32,6 @@
                                                 (force-binary nil)
                                                 (accepted-status '(200))
                                                 (version "2.0"))
-  (format t "url=~s~%" url)
   (multiple-value-bind (stream code received-headers original-url reply-stream should-close reason)
       (authenticated-request url session
                              :want-stream t
