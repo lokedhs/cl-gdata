@@ -70,7 +70,11 @@ it into the KEYWORD package."
     (:folder "folder")))
 
 (defun list-documents (&key (session *gdata-session*) max-results showfolders type)
-  "List all the documents that belongs to the authenticated user"
+  "List all the documents that belongs to the authenticated user. :MAX-RESULTS can be set
+to an integer (up to a maximum of 1000) that limits the number of returned objects.
+If :SHOWFOLDERS is non-NIL, the resulting list will also contain folder objects.
+:TYPE can be used to limit the output to a specific type of documents (one of :DOCUMENT,
+:SPREADSHEET, PRESENTATION, :DRAWING or :FOLDER"
   (let ((doc (load-and-parse (with-output-to-string (out)
                                (format out "https://docs.google.com/feeds/default/private/full")
                                (when type
