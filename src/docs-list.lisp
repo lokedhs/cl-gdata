@@ -69,12 +69,14 @@ it into the KEYWORD package."
     (:drawing "drawing")
     (:folder "folder")))
 
-(defun list-documents (&key (session *gdata-session*) max-results showfolders type)
+(defun list-documents (&key (session *gdata-session*) max-results showfolders type query-string)
   "List all the documents that belongs to the authenticated user. :MAX-RESULTS can be set
 to an integer (up to a maximum of 1000) that limits the number of returned objects.
 If :SHOWFOLDERS is non-NIL, the resulting list will also contain folder objects.
 :TYPE can be used to limit the output to a specific type of documents (one of :DOCUMENT,
-:SPREADSHEET, :PRESENTATION, :DRAWING or :FOLDER)"
+:SPREADSHEET, :PRESENTATION, :DRAWING or :FOLDER).
+
+If :QUERY-STRING is given, it is used as a search term."
   (let ((doc (load-and-parse (with-output-to-string (out)
                                (format out "https://docs.google.com/feeds/default/private/full")
                                (when type
@@ -82,7 +84,8 @@ If :SHOWFOLDERS is non-NIL, the resulting list will also contain folder objects.
                                (loop
                                   with first = t
                                   for (key . value) in (list (cons "max-results" max-results)
-                                                             (cons "showfolders" (when showfolders "true")))
+                                                             (cons "showfolders" (when showfolders "true"))
+                                                             (cons "q" (when query-string (url-rewrite:url-encode query-string))))
                                   if value
                                   do (progn
                                        (format out "~a~a=~a" (if first "?" "&") key value)
