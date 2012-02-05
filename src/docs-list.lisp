@@ -69,28 +69,48 @@ it into the KEYWORD package."
     (:drawing "drawing")
     (:folder "folder")))
 
-(defun list-documents (&key (session *gdata-session*) max-results showfolders type query-string)
-  "List all the documents that belongs to the authenticated user. :MAX-RESULTS can be set
-to an integer (up to a maximum of 1000) that limits the number of returned objects.
+(defun parse-date-string (value)
+  "Parse a date value and return it as an ISO date."
+  (flet ((format-local-time (v)
+           (local-time:format-timestring nil v :timezone local-time:+utc-zone+)))
+    (etypecase value
+      (string value)
+      (number (format-local-time (local-time:universal-to-timestamp value)))
+      (local-time:timestamp (format-local-time value)))))
+
+(defun list-documents (&key (session *gdata-session*) max-results showfolders type query-string updated-min)
+  "List all the documents that belongs to the authenticated user.
+
+:MAX-RESULTS can be set to an integer (up to a maximum of 1000) that limits the number of
+returned objects.
+
 If :SHOWFOLDERS is non-NIL, the resulting list will also contain folder objects.
 :TYPE can be used to limit the output to a specific type of documents (one of :DOCUMENT,
 :SPREADSHEET, :PRESENTATION, :DRAWING or :FOLDER).
 
-If :QUERY-STRING is given, it is used as a search term."
-  (let ((doc (load-and-parse (with-output-to-string (out)
-                               (format out "https://docs.google.com/feeds/default/private/full")
-                               (when type
-                                 (format out "/-/~a" (type-string-for-type type)))
-                               (loop
-                                  with first = t
-                                  for (key . value) in (list (cons "max-results" max-results)
-                                                             (cons "showfolders" (when showfolders "true"))
-                                                             (cons "q" (when query-string (url-rewrite:url-encode query-string))))
-                                  if value
-                                  do (progn
-                                       (format out "~a~a=~a" (if first "?" "&") key value)
-                                       (setq first nil))))
-                             :session session)))
+If :QUERY-STRING is non-NIL, it is used as a search term.
+
+If given, :UPDATED-MIN indicates the oldest documents that should be included in the
+output. The value can be either a universal time value, an a local-time instance,
+or a string in standard ISO format."
+  (let* ((params (list (cons "max-results" max-results)
+                       (cons "showfolders" (when showfolders "true"))
+                       (cons "q" (when query-string
+                                   (url-rewrite:url-encode query-string)))
+                       (cons "updated-min" (when updated-min
+                                             (parse-date-string updated-min)))))
+         (doc (load-and-parse (with-output-to-string (out)
+                                (format out "https://docs.google.com/feeds/default/private/full")
+                                (when type
+                                  (format out "/-/~a" (type-string-for-type type)))
+                                (loop
+                                   with first = t
+                                   for (key . value) in params
+                                   if value
+                                   do (progn
+                                        (format out "~a~a=~a" (if first "?" "&") key value)
+                                        (setq first nil))))
+                              :session session)))
     (with-gdata-namespaces
       (xpath:map-node-set->list #'make-document-entry (xpath:evaluate "/atom:feed/atom:entry" doc)))))
 

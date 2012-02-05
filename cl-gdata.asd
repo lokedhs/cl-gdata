@@ -22,7 +22,8 @@
                :cl-fad
                :trivial-utf-8
                :alexandria
-               :string-case)
+               :string-case
+               :local-time)
   :components ((:module src
                         :serial t
                         :components ((:file "package")
