@@ -4,7 +4,7 @@
 
 (defclass clientlogin-session ()
   ((username  :type (or null string)
-              :initarg :username
+              :initarg :user
               :accessor clientlogin-session-username)
    (password  :type (or null string)
               :initarg :password)
