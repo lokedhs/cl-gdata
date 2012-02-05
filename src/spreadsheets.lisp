@@ -117,7 +117,7 @@ if the cell does not contain a number")
 (defun load-worksheets (doc)
   "Loads the worksheets into the document instance. Returns the new worksheets."
   (check-type doc spreadsheet)
-  (let ((doc-node (load-and-parse (find-document-feed doc +SPREADSHEETS-WORKSHEETSFEED+ +ATOM-XML-MIME-TYPE+))))
+  (let ((doc-node (load-and-parse (find-feed-from-atom-feed-entry doc +SPREADSHEETS-WORKSHEETSFEED+ +ATOM-XML-MIME-TYPE+))))
     (with-gdata-namespaces
       (let ((ws-list (xpath:map-node-set->list #'(lambda (node)
                                                    (make-instance 'worksheet
