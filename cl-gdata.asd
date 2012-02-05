@@ -14,7 +14,7 @@
                :xpath
                :url-rewrite
                :flexi-streams
-               :spartns
+;;               :spartns
                :parse-number
                :cl-ppcre
                :gzip-stream
