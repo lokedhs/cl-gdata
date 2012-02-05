@@ -1,0 +1,82 @@
+Summary documentation for cl-gdata. Work in progress.
+
+This file is using Org Mode. If
+you opened this document in Emacs and only see the headers, go to the
+header row, and press TAB to open or close it.
+
+* Author Contact Information
+
+Elias Martenson
+[[lokedhs@gmail.com]]
+Google+ profile: http://profiles.google.com/lokedhs
+
+* Introduction
+
+cl-gdata is a project aimed at implementing the Google GData API's in
+Common Lisp.
+
+* API Documentation
+
+** Authenticating
+All API calls requires the user to be authenticated. Google provides
+several different authentication methods that can be used. The primary
+ways are: [[http://code.google.com/apis/gdata/docs/auth/overview.html#ClientLogin][ClientLogin]], [[http://code.google.com/apis/gdata/docs/auth/overview.html#authsub][AuthSub]] and [[http://code.google.com/apis/gdata/docs/auth/overview.html#OAuth][OAuth]].
+
+cl-gdata supports different implementations of authentication
+objects, although currently only ClientLogin is supported by means of
+the CL-GDATA-CLIENTLOGIN:CLIENTLOGIN-SESSION class.
+
+All functions that require authentication needs to be able to access a
+session instance that is responsible for handling the authentication
+process. The session can be specified using the keyword
+argument :SESSION and will default to the content of
+CL-GDATA:*GDATA-SESSION*.
+
+*** Authenticating With ClientLogin
+The ClientLogin session instance is created by instantiating the
+CL-GDATA-CLIENTLOGIN:CLIENTLOGIN-SESSION class:
+
+#+begin_src lisp
+(setq cl-gdata:*gdata-session*
+      (make-instance 'cl-gdata-clientlogin:clientlogin-session
+                     :user username
+                     :password password))
+#+end_src
+
+This will cause all subsequent calls to the GData functions to use
+ClientLogin with the given username and password.
+
+** Document List API
+
+The document List API is used to access documents in Google Docs.
+
+All symbols for this part of the API is in the CL-GDATA-DOCS-LIST. The
+examples assumes that this package is interned in the current package.
+
+*** Listing Documents
+
+Listing documents is performed using the LIST-DOCUMENTS function:
+
+#+begin_src lisp
+(list-documents)
+#+end_src lisp
+
+#+results:
+: (#<DOCUMENT "word document"> #<SPREADSHEET "Test spreadsheet">
+:  #<DOCUMENT "Test document">)
+
+** Spreadsheet API
+
+TODO: check the source code for now: spreadsheets.lisp
+
+** Contacts API
+
+TODO: check the source code for now: contacts.lisp
+
+** Picasa API
+
+TODO: check the source code for now: picasa.lisp
+
+** Google Code Issue Tracker API
+
+TODO: check the source code for now: issue-tracker.lisp
