@@ -15,6 +15,25 @@ Google+ profile: http://profiles.google.com/lokedhs
 cl-gdata is a project aimed at implementing the Google GData API's in
 Common Lisp.
 
+* Compatilibity
+
+cl-gdata is being developed on SBCL, but all attempts are made to keep
+the code as standard as possible. That said, because of the numerous
+libraries being used, not all Lisp implementations are able to load
+this library.
+
+This project is currently known to work on:
+
+- SBCL
+- CCL
+
+It currently has problems with:
+
+- ABCL (does not have a functioning implementation of Closer-MOP)
+- ECL (xpath does not load)
+- CLISP (fails when loading classes with a metaclass, problems with
+  the MOP implementation?)
+
 * API Documentation
 
 ** Authenticating
