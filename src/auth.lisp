@@ -61,7 +61,6 @@
                        (session *gdata-session*) (method :get) (content-type nil)
                        (content nil) (additional-headers nil) (force-binary nil)
                        (accepted-status '(200)) (version "3.0"))
-  (format t "url=~s~%" url)
   (http-request-with-stream url
                             #'(lambda (s received-headers code)
                                 (declare (ignore received-headers code))
