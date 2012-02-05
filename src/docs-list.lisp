@@ -117,7 +117,7 @@ or a string in standard ISO format."
 (defun copy-stream-with-limit (from to limit)
   "Copies a maximum of LIMIT elements into TO \(a stream) from FROM
 \(also a stream) until the end of FROM is reached, in blocks of
-8192 elements.  The streams should have the same element type."
+8192 elements. The streams should have the same element type."
   (let ((buf (make-array 8192
                          :element-type (stream-element-type from))))
     (loop
