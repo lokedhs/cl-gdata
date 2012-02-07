@@ -129,7 +129,3 @@ The class has the following slots:
 | feeds    | feed-entry-feeds    | A list of all <atom:link> elements            |
 | title    | feed-entry-title    | The title of the element                      |
 | node-dom | feed-entry-node-dom | The XML node that was read from the Atom feed |
-
-The NODE-DOM slot is useful for accessing information that is not
-currently exposed through the API. It is just the standard CXML DOM
-node that was loaded from the Atom feed.
