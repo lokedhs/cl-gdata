@@ -1,14 +1,14 @@
 Summary documentation for cl-gdata. Work in progress.
 
-This file is using Org Mode. If
-you opened this document in Emacs and only see the headers, go to the
-header row, and press TAB to open or close it.
+This file is using Org Mode. If you opened this document in Emacs and
+only see the headers, go to the header row, and press TAB to open or
+close it.
 
 * Author Contact Information
 
-Elias Martenson
-[[lokedhs@gmail.com]]
-Google+ profile: http://profiles.google.com/lokedhs
+Elias Mårtenson
+- Email: [[lokedhs@gmail.com]]
+- Google+ profile: http://profiles.google.com/lokedhs
 
 * Introduction
 
@@ -78,11 +78,28 @@ Listing documents is performed using the LIST-DOCUMENTS function:
 
 #+begin_src lisp
 (list-documents)
-#+end_src lisp
+#+end_src
 
-#+results:
-: (#<DOCUMENT "word document"> #<SPREADSHEET "Test spreadsheet">
-:  #<DOCUMENT "Test document">)
+Running the above results in something like the following:
+
+#+begin_src lisp
+(#<DOCUMENT "word document"> #<SPREADSHEET "Test spreadsheet">
+ #<DOCUMENT "Test document">)
+#+end_src
+
+*** Document Object Hierarchy
+
+All document classes inherit from the DOCUMENT class. This itself
+inherits from ATOM-FEED-ENTRY (see [[#ATOM-FEED-ENTRY Class Description]]).
+
+| Slot               | Accessor                    | Description                                                    |
+|--------------------+-----------------------------+----------------------------------------------------------------|
+| id-url             | document-id-url             | The ID URL for this document                                   |
+| resource-id        | document-resource-id        | The resource ID. This value uniquely identifies this document. |
+| description        | document-description        | Human-readable description                                     |
+| suggested-filename | document-suggested-filename | The suggested name for the file when downloaded                |
+| updated            | document-updated            | The timestamp when the document was updated                    |
+| content            | document-content            | List of entries, each being a list of type and source URL      |
 
 ** Spreadsheet API
 
@@ -99,3 +116,20 @@ TODO: check the source code for now: picasa.lisp
 ** Google Code Issue Tracker API
 
 TODO: check the source code for now: issue-tracker.lisp
+** ATOM-FEED-ENTRY Class Description
+
+The class ATOM-FEED-ENTRY is the superclass of all classes that
+describe entries from an Atom feed. This includes all documents from
+Google Docs as well as Picasa documents and Google Contacts.
+
+The class has the following slots:
+
+| Slot     | Accessor            | Description                                   |
+|----------+---------------------+-----------------------------------------------|
+| feeds    | feed-entry-feeds    | A list of all <atom:link> elements            |
+| title    | feed-entry-title    | The title of the element                      |
+| node-dom | feed-entry-node-dom | The XML node that was read from the Atom feed |
+
+The NODE-DOM slot is useful for accessing information that is not
+currently exposed through the API. It is just the standard CXML DOM
+node that was loaded from the Atom feed.
