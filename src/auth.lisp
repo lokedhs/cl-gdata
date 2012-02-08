@@ -20,8 +20,8 @@
                                                   :external-format :UTF8
                                                   :element-type 'character)))
       (loop
-         with s
-         while (setq s (read-line input nil nil))
+         for s = (read-line input nil nil)
+         while s
          do (format *debug-io* "~a~%" s)))
     (format *debug-io* "~&====== END OF ERROR OUTPUT ======~%")))
 
