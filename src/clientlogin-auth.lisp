@@ -13,14 +13,14 @@
               :documentation "A hashtable that is keyed on the service name and
 contains the authentication key as the value")))
 
-(define-condition authentication-failed (error)
+(define-condition clientlogin-authentication-failed (authentication-failed)
   ((username :initarg :username
-             :reader authentication-failed-username)
+             :reader clientlogin-authentication-failed-username)
    (response :initarg :response
-             :reader authentication-failed-response))
+             :reader clientlogin-authentication-failed-response))
   (:report (lambda (condition out)
              (format out "Authentication failed for username: ~a"
-                     (authentication-failed-username condition))))
+                     (clientlogin-authentication-failed-username condition))))
   (:documentation "Condition that is signalled when a ClientLogin request fails"))
 
 (defun parse-auth-reply (s)
@@ -48,7 +48,7 @@ contains the authentication key as the value")))
                                                                               ("service" . ,service)
                                                                               ("source" . ,source)))
         (case code
-          ((403) (error 'authentication-failed :username username :response response))
+          ((403) (error 'clientlogin-authentication-failed :username username :response response))
           ((200) (parse-auth-reply response))
           (t     (error "Unsupported response code from ClientLogin: ~a" response))))
     ;; Restarts

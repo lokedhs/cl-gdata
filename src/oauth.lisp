@@ -1,7 +1,11 @@
+(in-package :cl-gdata-oauth)
+
+(declaim #.cl-gdata::*compile-decl*)
+
 ;;; insert your credentials and auxiliary information here.
 (defparameter *key* "anonymous")
 (defparameter *secret* "anonymous")
-(defparameter *callback-uri* "")
+(defparameter *callback-uri* "oob")
 (defparameter *callback-port* 8090
   "Port to listen on for the callback")
 
@@ -69,3 +73,25 @@
 
   (setf *web-server* (hunchentoot:start (make-instance 'hunchentoot:acceptor :port *callback-port*))))
 
+(defclass oauth-session ()
+  ((token-hash :type hashtable
+               :initform (make-hash-table :test 'equal)
+               :reader oauth-session-token-hash
+               :documentation "A hashmap of authentication keys"))
+  (:documentation "Session instance for OAuth GData sessions"))
+
+(define-condition oauth-authentication-failed (authentication-failed)
+  ()
+  (:documentation "Condition that is signalled when an OAuth request fails"))
+
+(defun authenticate-if-needed (session key)
+  (let ((token (gethash key (oauth-session-token-hash session))))
+    ))
+
+(defmethod authenticated-request (url (session oauth-session)
+                                  &key
+                                  (method :get) (parameters nil) (content nil) (want-stream nil)
+                                  (content-type nil) (additional-headers nil) (user-agent "cl-gdata")
+                                  (force-binary nil) (content-length nil))
+  (let ((token (authenticate-if-needed session :foo)))
+    token)

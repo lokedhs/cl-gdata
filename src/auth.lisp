@@ -4,6 +4,10 @@
 
 (alexandria:define-constant +HTTP-GDATA-USER-AGENT+ "cl-gdata (gzip)" :test 'equal)
 
+(define-condition authentication-failed (error)
+  ()
+  (:documentation "Error that is raised when authentication fails."))
+
 (defgeneric authenticated-request (url session
                                        &key method parameters content want-stream
                                        content-type additional-headers user-agent

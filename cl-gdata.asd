@@ -23,12 +23,14 @@
                :trivial-utf-8
                :alexandria
                :string-case
-               :local-time)
+               :local-time
+               :cl-oauth)
   :components ((:module src
                         :serial t
                         :components ((:file "package")
                                      (:file "misc-package")
                                      (:file "clientlogin-package")
+                                     (:file "oauth-package")
                                      (:file "docs-list-package")
                                      (:file "spreadsheets-package")
                                      (:file "picasa-package")
@@ -40,6 +42,7 @@
                                      (:file "cl-gdata")
                                      (:file "auth")
                                      (:file "clientlogin-auth")
+                                     (:file "oauth")
                                      (:file "atom")
                                      (:file "docs-list")
                                      (:file "docs-access")
