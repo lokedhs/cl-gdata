@@ -1,3 +1,4 @@
 (defpackage :cl-gdata-clientlogin
   (:use :cl :cl-gdata-misc)
-  (:export #:clientlogin-session))
+  (:export #:clientlogin-session
+           #:authentication-failed))

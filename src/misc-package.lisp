@@ -34,4 +34,5 @@
            #:value-by-xpath
            #:display-stream-if-debug
            #:name-from-filename
-           #:load-feed))
+           #:load-feed
+           #:authentication-failed))

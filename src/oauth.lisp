@@ -94,4 +94,4 @@
                                   (content-type nil) (additional-headers nil) (user-agent "cl-gdata")
                                   (force-binary nil) (content-length nil))
   (let ((token (authenticate-if-needed session :foo)))
-    token)
+    token))
