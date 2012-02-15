@@ -124,8 +124,8 @@ Google Docs as well as Picasa documents and Google Contacts.
 
 The class has the following slots:
 
-| Slot     | Accessor            | Description                                   |
-|----------+---------------------+-----------------------------------------------|
-| feeds    | feed-entry-feeds    | A list of all <atom:link> elements            |
-| title    | feed-entry-title    | The title of the element                      |
-| node-dom | feed-entry-node-dom | The XML node that was read from the Atom feed |
+| Slot     | Accessor         | Description                                   |
+|----------+------------------+-----------------------------------------------|
+| feeds    | feed-entry-feeds | A list of all <atom:link> elements            |
+| title    | feed-entry-title | The title of the element                      |
+| node-dom | node-dom         | The XML node that was read from the Atom feed |
