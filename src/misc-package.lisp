@@ -35,4 +35,5 @@
            #:display-stream-if-debug
            #:name-from-filename
            #:load-feed
-           #:authentication-failed))
+           #:authentication-failed
+           #:make-url-search-params))

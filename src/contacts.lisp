@@ -56,7 +56,7 @@
   (:documentation "Class that represents a contact element")
   (:metaclass atom-feed-entry-class))
 
-(defun list-contacts (&key (session *gdata-session*) username)
+(defun list-contacts (&key (session *gdata-session*) username updated-min)
   "Return a list of all contacts for the specified user"
   (load-atom-feed-url (format nil "https://www.google.com/m8/feeds/contacts/~a/full"
                               (if username (url-rewrite:url-encode username) "default"))

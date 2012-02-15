@@ -32,3 +32,27 @@
 (defun name-from-filename (file)
   "Returns the name part of FILE. FILE can be either a string or a pathspec."
   (pathname-name (parse-namestring file)))
+
+(defun make-url-search-params (url &rest definitions)
+  "Appends a set of candidate parameters to URL and returns the resulting url.
+The arguments in DEFINITIONS consists of a set of pairs, the first of which
+is a string, and the second is any printable value or NIL. If the value is
+NIL, the pair is ignored, otherwise the first is used as a parameter name
+and the second is its value.
+
+For example, the following call:
+
+\(make-url-search-params \"http://www.example.com/foo\" \"foo\" nil \"bar\" 10 \"xyz\" \"foo\")
+
+Will result in the following string:
+
+http://www.example.com/foo?bar=10&xyz=foo"
+  (with-output-to-string (s)
+    (princ url s)
+    (loop
+       with first = t
+       for (tag value) on definitions by #'cddr
+       if value
+       do (progn
+            (format s "~a~a=~a" (if first "?" "&") tag (url-rewrite:url-encode (princ-to-string value)))
+            (setq first nil)))))

@@ -23,8 +23,7 @@
                :trivial-utf-8
                :alexandria
                :string-case
-               :local-time
-               :cl-oauth)
+               :local-time)
   :components ((:module src
                         :serial t
                         :components ((:file "package")
@@ -42,7 +41,6 @@
                                      (:file "cl-gdata")
                                      (:file "auth")
                                      (:file "clientlogin-auth")
-                                     (:file "oauth")
                                      (:file "atom")
                                      (:file "docs-list")
                                      (:file "docs-access")

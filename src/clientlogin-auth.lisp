@@ -115,4 +115,5 @@ contains the authentication key as the value")))
            :content-type (or content-type "application/x-www-form-urlencoded")
            :content content
            :force-binary force-binary
+           :preserve-uri t
            (append (if content-length (list :content-length content-length) nil)))))

@@ -99,7 +99,12 @@ or a string in standard ISO format."
                                    (url-rewrite:url-encode query-string)))
                        (cons "updated-min" (when updated-min
                                              (parse-date-string updated-min)))))
-         (doc (load-and-parse (with-output-to-string (out)
+         (doc (load-and-parse (make-url-search-params "https://docs.google.com/feeds/default/private/full"
+                                                      "max-results" max-results
+                                                      "showfolders" (when showfolders "true")
+                                                      "q" query-string
+                                                      "updated-min" (when updated-min (parse-date-string updated-min)))
+#+nil(with-output-to-string (out)
                                 (format out "https://docs.google.com/feeds/default/private/full")
                                 (when type
                                   (format out "/-/~a" (type-string-for-type type)))
