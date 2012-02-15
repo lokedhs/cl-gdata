@@ -77,7 +77,7 @@ contains the authentication key as the value")))
 
 (defparameter *service-name-map*
   (let ((m '(("^https://docs.google.com/feeds/.*" "writely")
-             ("^https://spreadsheets.google.com/feeds/.*" "wise")
+             ("^https://spreadsheets.google.com/.*" "wise")
              ("^https://www.google.com/m8/feeds/.*" "cp")
              ("^https://picasaweb.google.com/data/.*" "lh2")
              ("^https?://code.google.com/feeds/.*" "code")

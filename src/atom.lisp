@@ -15,7 +15,7 @@
 Each entry is a list of the three attributes in a \"link\"
 node: \"rel\", \"type\", \"href\".")
    (node-dom :initarg :node-dom
-             :reader document-node-dom
+             :reader node-dom
              :documentation "The DOM node that was used to initialise this document")))
 
 (defmethod initialize-instance :after ((node node-dom-mixin) &key node-dom &allow-other-keys)
@@ -55,8 +55,8 @@ node: \"rel\", \"type\", \"href\".")
 
 (defmethod initialize-instance :after ((obj feed) &key &allow-other-keys)
   (with-gdata-namespaces
-    (setf (slot-value obj 'etag) (value-by-xpath "/atom:feed/@gd:etag" (document-node-dom obj)))
-    (setf (slot-value obj 'entry-list) (load-atom-feed (document-node-dom obj) (feed-entry-type obj)))))
+    (setf (slot-value obj 'etag) (value-by-xpath "/atom:feed/@gd:etag" (node-dom obj)))
+    (setf (slot-value obj 'entry-list) (load-atom-feed (node-dom obj) (feed-entry-type obj)))))
 
 ;;;
 ;;; MOP stuff
@@ -128,7 +128,7 @@ node: \"rel\", \"type\", \"href\".")
                  :node-default ""
 		 :documentation "Content of the <title> node")
    (node-dom     :initarg :node-dom
-                 :reader feed-entry-node-dom
+                 :reader node-dom
                  :documentation "The underlying dom for this node"))
   (:documentation "Common superclass for all Atom feed entries")
   (:metaclass atom-feed-entry-class))
@@ -149,7 +149,7 @@ node: \"rel\", \"type\", \"href\".")
 (defmethod update-feed-entry-node ((element atom-feed-entry) destination-doc)
   (with-gdata-namespaces
     (let* ((class (class-of element))
-           (old-node (feed-entry-node-dom element))
+           (old-node (node-dom element))
            (node (dom:import-node destination-doc old-node t)))
 
       (dolist (slot (closer-mop:class-slots class))

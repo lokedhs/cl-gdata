@@ -13,4 +13,5 @@
            #:delete-document
            #:download-document
            #:list-doc-acls
-           #:folder))
+           #:folder
+           #:drawing))

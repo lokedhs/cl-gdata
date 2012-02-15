@@ -21,5 +21,5 @@ The elements in the list are the content of the type, value and name attributes.
 (defun list-doc-acls (document)
   (with-gdata-namespaces
     (let ((url (value-by-xpath (format nil "gd:feedLink[@rel='~a']/@href" +DOCS-ACCESS-CONTROL-FEED+)
-                               (feed-entry-node-dom document))))
+                               (node-dom document))))
       (load-atom-feed-url url 'access))))

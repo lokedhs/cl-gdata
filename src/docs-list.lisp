@@ -203,7 +203,7 @@ or a string in standard ISO format."
 an input stream as an argument."
   (with-gdata-namespaces
     (let ((url (dom:get-attribute (xpath:first-node (xpath:evaluate "atom:content[@type='application/atom+xml']"
-                                                                    (feed-entry-node-dom document)))
+                                                                    (node-dom document)))
                                   "src")))
       (http-request-with-stream url #'(lambda (s receieved code)
                                         (declare (ignore receieved code))

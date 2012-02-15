@@ -10,7 +10,6 @@
            #:+ATOM-XML-MIME-TYPE+
            #:node-dom-mixin
            #:document-feeds
-           #:document-node-dom
            #:find-document-feed
            #:atom-feed-entry-class
            #:atom-feed-entry
@@ -26,9 +25,8 @@
            #:build-atom-xml-stream
            #:text-from-xpath
            #:document-feeds
-           #:document-node-dom
            #:+HTTP-GDATA-USER-AGENT+
-           #:feed-entry-node-dom
+           #:node-dom
            #:update-from-xpath
            #:update-feed-entry-node
            #:value-by-xpath
