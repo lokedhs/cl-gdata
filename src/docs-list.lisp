@@ -93,18 +93,15 @@ If :QUERY-STRING is non-NIL, it is used as a search term.
 If given, :UPDATED-MIN indicates the oldest documents that should be included in the
 output. The value can be either a universal time value, an a local-time instance,
 or a string in standard ISO format."
-  (let* ((params (list (cons "max-results" max-results)
-                       (cons "showfolders" (when showfolders "true"))
-                       (cons "q" (when query-string
-                                   (url-rewrite:url-encode query-string)))
-                       (cons "updated-min" (when updated-min
-                                             (parse-date-string updated-min)))))
-         (doc (load-and-parse (make-url-search-params "https://docs.google.com/feeds/default/private/full"
-                                                      "max-results" max-results
-                                                      "showfolders" (when showfolders "true")
-                                                      "q" query-string
-                                                      "updated-min" (when updated-min (parse-date-string updated-min)))
-                              :session session)))
+  (let ((doc (load-and-parse (make-url-search-params (format nil "https://docs.google.com/feeds/default/private/full~a"
+                                                             (if type 
+                                                                 (format nil "/-/~a" (type-string-for-type type))
+                                                                 ""))
+                                                     "max-results" max-results
+                                                     "showfolders" (when showfolders "true")
+                                                     "q" query-string
+                                                     "updated-min" (when updated-min (parse-date-string updated-min)))
+                             :session session)))
     (with-gdata-namespaces
       (xpath:map-node-set->list #'make-document-entry (xpath:evaluate "/atom:feed/atom:entry" doc)))))
 
