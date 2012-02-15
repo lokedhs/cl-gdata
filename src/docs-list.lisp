@@ -33,16 +33,23 @@
   ()
   (:metaclass atom-feed-entry-class))
 
+(defclass drawing (atom-feed-entry)
+  ()
+  (:metaclass atom-feed-entry-class))
+
 (defgeneric make-document-from-resource (node resource-type)
   (:documentation "Create a document instance based on a specific resource type")
   (:method (node resource-type)
-    (error "Initialisation method for resource type ~s not available" resource-type))
+    (warn "Initialisation method for resource type ~s not available" resource-type)
+    nil)
   (:method (node (resource-type (eql :document)))
     (make-instance 'document :node-dom node))
   (:method (node (resource-type (eql :file)))
     (make-instance 'document :node-dom node))
   (:method (node (resource-type (eql :folder)))
-    (make-instance 'folder :node-dom node)))
+    (make-instance 'folder :node-dom node))
+  (:method (node (resource-type (eql :drawing)))
+    (make-instance 'drawing :node-dom node)))
 
 (defun parse-resource-id (resource-id)
   "Given a document, return the id to be used in document URL's. The second
@@ -103,7 +110,7 @@ or a string in standard ISO format."
                                                      "updated-min" (when updated-min (parse-date-string updated-min)))
                              :session session)))
     (with-gdata-namespaces
-      (xpath:map-node-set->list #'make-document-entry (xpath:evaluate "/atom:feed/atom:entry" doc)))))
+      (remove nil (xpath:map-node-set->list #'make-document-entry (xpath:evaluate "/atom:feed/atom:entry" doc))))))
 
 (defun copy-stream-with-limit (from to limit)
   "Copies a maximum of LIMIT elements into TO \(a stream) from FROM
