@@ -104,17 +104,6 @@ or a string in standard ISO format."
                                                       "showfolders" (when showfolders "true")
                                                       "q" query-string
                                                       "updated-min" (when updated-min (parse-date-string updated-min)))
-#+nil(with-output-to-string (out)
-                                (format out "https://docs.google.com/feeds/default/private/full")
-                                (when type
-                                  (format out "/-/~a" (type-string-for-type type)))
-                                (loop
-                                   with first = t
-                                   for (key . value) in params
-                                   if value
-                                   do (progn
-                                        (format out "~a~a=~a" (if first "?" "&") key value)
-                                        (setq first nil))))
                               :session session)))
     (with-gdata-namespaces
       (xpath:map-node-set->list #'make-document-entry (xpath:evaluate "/atom:feed/atom:entry" doc)))))
