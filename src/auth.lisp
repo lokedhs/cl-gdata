@@ -61,6 +61,19 @@
       (when should-close
         (close stream)))))
 
+(defun debug-get-and-display-url (url)
+  "Debug function that prints the content of the given URL. Only to be used for testing."
+  (http-request-with-stream url
+                            #'(lambda (s h c)
+                                (format *debug-io* "h=~s~%c=~s~%" h c)
+                                (let ((input (flexi-streams:make-flexi-stream s
+                                                                              :external-format :UTF8
+                                                                              :element-type 'character)))
+                                  (loop
+                                     for s = (read-line input nil nil)
+                                     while s
+                                     do (format *debug-io* "~a~%" s)))))  )
+
 (defun load-and-parse (url &key
                        (session *gdata-session*) (method :get) (content-type nil)
                        (content nil) (additional-headers nil) (force-binary nil)
