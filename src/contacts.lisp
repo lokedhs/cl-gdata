@@ -56,10 +56,18 @@
   (:documentation "Class that represents a contact element")
   (:metaclass atom-feed-entry-class))
 
-(defun list-contacts (&key (session *gdata-session*) username updated-min)
+(defun list-contacts (&key (session *gdata-session*) username updated-min max-results start-index query-string)
   "Return a list of all contacts for the specified user"
-  (load-atom-feed-url (format nil "https://www.google.com/m8/feeds/contacts/~a/full"
-                              (if username (url-rewrite:url-encode username) "default"))
+  (check-type max-results (or null alexandria:non-negative-integer))
+  (check-type start-index (or null alexandria:non-negative-integer))
+  (check-type query-string (or null string))
+  (check-type updated-min (or null cl-gdata-date-value))
+  (load-atom-feed-url (make-url-search-params (format nil "https://www.google.com/m8/feeds/contacts/~a/full"
+                                                      (if username (url-rewrite:url-encode username) "default"))
+                                              "q" query-string
+                                              "updated-min" (when updated-min (parse-date-string updated-min))
+                                              "max-results" max-results
+                                              "start-index" start-index)
                       'contact
                       :session session))
 

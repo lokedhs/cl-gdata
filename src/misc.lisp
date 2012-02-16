@@ -33,6 +33,18 @@
   "Returns the name part of FILE. FILE can be either a string or a pathspec."
   (pathname-name (parse-namestring file)))
 
+(deftype cl-gdata-date-value () '(or alexandria:positive-real string local-time:timestamp))
+
+(defun parse-date-string (value)
+  "Parse a date value and return it as an ISO date."
+  (check-type value cl-gdata-date-value)
+  (flet ((format-local-time (v)
+           (local-time:format-timestring nil v :timezone local-time:+utc-zone+)))
+    (etypecase value
+      (string value)
+      (number (format-local-time (local-time:universal-to-timestamp value)))
+      (local-time:timestamp (format-local-time value)))))
+
 (defun make-url-search-params (url &rest definitions)
   "Appends a set of candidate parameters to URL and returns the resulting url.
 The arguments in DEFINITIONS consists of a set of pairs, the first of which

@@ -76,15 +76,6 @@ it into the KEYWORD package."
     (:drawing "drawing")
     (:folder "folder")))
 
-(defun parse-date-string (value)
-  "Parse a date value and return it as an ISO date."
-  (flet ((format-local-time (v)
-           (local-time:format-timestring nil v :timezone local-time:+utc-zone+)))
-    (etypecase value
-      (string value)
-      (number (format-local-time (local-time:universal-to-timestamp value)))
-      (local-time:timestamp (format-local-time value)))))
-
 (defun list-documents (&key (session *gdata-session*) max-results showfolders type query-string updated-min)
   "List all the documents that belongs to the authenticated user.
 
@@ -100,6 +91,9 @@ If :QUERY-STRING is non-NIL, it is used as a search term.
 If given, :UPDATED-MIN indicates the oldest documents that should be included in the
 output. The value can be either a universal time value, an a local-time instance,
 or a string in standard ISO format."
+  (check-type max-results (or null alexandria:non-negative-integer))
+  (check-type query-string (or null string))
+  (check-type updated-min (or null cl-gdata-date-value))
   (let ((doc (load-and-parse (make-url-search-params (format nil "https://docs.google.com/feeds/default/private/full~a"
                                                              (if type 
                                                                  (format nil "/-/~a" (type-string-for-type type))

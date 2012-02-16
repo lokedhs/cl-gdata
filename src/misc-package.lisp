@@ -34,4 +34,6 @@
            #:name-from-filename
            #:load-feed
            #:authentication-failed
-           #:make-url-search-params))
+           #:make-url-search-params
+           #:cl-gdata-date-value
+           #:parse-date-string))
