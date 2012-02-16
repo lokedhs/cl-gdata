@@ -29,9 +29,9 @@ This project is currently known to work on:
 
 It currently has problems with:
 
-- ABCL (does not have a functioning implementation of Closer-MOP)
+- ABCL (Does not have a functioning implementation of Closer-MOP)
 - ECL (xpath does not load)
-- CLISP (fails when loading classes with a metaclass, problems with
+- CLISP (Fails when loading classes with a metaclass. Problems with
   the MOP implementation?)
 
 * API Documentation
@@ -65,12 +65,18 @@ CL-GDATA-CLIENTLOGIN:CLIENTLOGIN-SESSION class:
 This will cause all subsequent calls to the GData functions to use
 ClientLogin with the given username and password.
 
+*** Authenticating With OAuth
+
+The OAuth autentication model is currently under development and does
+not work yet.
+
 ** Document List API
 
 The document List API is used to access documents in Google Docs.
 
-All symbols for this part of the API is in the CL-GDATA-DOCS-LIST. The
-examples assumes that this package is interned in the current package.
+All symbols for this part of the API is in the CL-GDATA-DOCS-LIST
+package. The examples assumes that this package is interned in the
+current package.
 
 *** Listing Documents
 
@@ -90,7 +96,7 @@ Running the above results in something like the following:
 *** Document Object Hierarchy
 
 All document classes inherit from the DOCUMENT class. This itself
-inherits from ATOM-FEED-ENTRY (see [[#ATOM-FEED-ENTRY Class Description]]).
+inherits from ATOM-FEED-ENTRY (see [[ATOM-FEED-ENTRY Class Description]]).
 
 | Slot               | Accessor                    | Description                                                    |
 |--------------------+-----------------------------+----------------------------------------------------------------|
