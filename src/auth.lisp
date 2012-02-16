@@ -17,6 +17,9 @@
 (defmethod authenticated-request (url session &key &allow-other-keys)
   (error "No handler available for session type ~s" (type-of session)))
 
+(defmethod authenticated-request (url (session null) &key &allow-other-keys)
+  (error "Session is NIL. Please set *GDATA-SESSION* to an instance of a session handler."))
+
 (defun display-stream-if-debug (stream)
   (when *verbose-http-errors*
     (format *debug-io* "~&====== ERROR OUTPUT ======~%")
