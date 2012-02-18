@@ -68,6 +68,7 @@
 ;;;        (("atom" "xyz" "foo" "bar") "text here")))
 ;;;
 (defun build-atom-document (content)
+  (check-type content list)
   (let ((doc (cxml-dom:create-document)))
     (labels ((append-subtree (node tree)
                (let ((n
@@ -86,7 +87,6 @@
                         (float (dom:create-text-node doc (format nil "~f" tree)))
                         (integer (dom:create-text-node doc (format nil "~a" tree))))))
                  (dom:append-child node n))))
-      (check-type content list)
       (append-subtree doc content)
       doc)))
 
