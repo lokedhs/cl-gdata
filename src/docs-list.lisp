@@ -64,7 +64,7 @@ it into the KEYWORD package."
 
 (defun make-document-entry (node)
   (with-gdata-namespaces
-    (let* ((resource-id (get-text-from-node (xpath:first-node (xpath:evaluate "gd:resourceId" node))))
+    (let* ((resource-id (value-by-xpath "gd:resourceId/text()" node))
            (type (nth-value 1 (parse-resource-id resource-id))))
       (make-document-from-resource node (document-type-name-to-identifier type)))))
 

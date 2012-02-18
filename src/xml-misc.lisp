@@ -94,9 +94,6 @@
   (dom:map-document (cxml:make-namespace-normalizer (cxml:make-character-stream-sink stream))
                     (build-atom-document content)))
 
-(defun text-from-xpath (node path)
-  (get-text-from-node (xpath:first-node (xpath:evaluate path node))))
-
 (defun debug-print-dom (doc &optional (stream *standard-output*))
   (dom:map-document (cxml:make-namespace-normalizer (cxml:make-character-stream-sink stream)) doc))
 

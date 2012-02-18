@@ -85,10 +85,10 @@ if the cell does not contain a number")
   (declare (ignore initargs))
   (with-slots (id-url title cells) sheet
     (with-gdata-namespaces
-      (setf id-url (text-from-xpath node-dom "atom:id"))
-      (setf title (text-from-xpath node-dom "atom:title"))
-      (setf cells (make-array (list (parse-integer (text-from-xpath node-dom "gs:rowCount"))
-                                    (parse-integer (text-from-xpath node-dom "gs:colCount")))
+      (setf id-url (value-by-xpath "atom:id/text()" node-dom))
+      (setf title (value-by-xpath "atom:title/text()" node-dom))
+      (setf cells (make-array (list (parse-integer (value-by-xpath "gs:rowCount/text()" node-dom))
+                                    (parse-integer (value-by-xpath "gs:colCount/text()" node-dom)))
                               :adjustable t :initial-element :unset)))))
 
 (defun worksheet-rows (worksheet)
