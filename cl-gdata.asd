@@ -7,7 +7,7 @@
   :name "cl-gdata"
   :author "Elias Martenson <lokedhs@gmail.com>"
   :license "BSD"
-  :description "Common Lisp interface to the Google Gdata API's"
+  :description "Common Lisp interface to the Google GData API's"
   :depends-on (:split-sequence
                :drakma
                :cxml
