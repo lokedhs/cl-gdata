@@ -163,7 +163,6 @@ if the cell does not contain a number")
                                  (min-col 0) (max-col (1- (array-dimension (slot-value worksheet 'cells) 1))))
   "Call FUNCTION for each cell for the given WORKSHEET with the following arguments:
 DOM-NODE - the <entry> node in the XML result
-ID - the URL to use when updating a cell
 ROW - the row number for the node (0-based)
 COLUMN - the column number for the node (0-based)
 VALUE - the content of the <gs:cell>
