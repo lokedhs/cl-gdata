@@ -25,21 +25,61 @@
         (dom:set-attribute email-node "primary" "true"))
       (dom:append-child node email-node))))
 
+(defun find-or-create-child-node (node child-ns child-name)
+  (let ((result (xpath:evaluate (format nil "~a:~a" child-ns child-name) node)))
+    (if (xpath:node-set-empty-p result)
+        ;; Node set is empty, create a new node
+        (let ((new-node (dom:create-element-ns (dom:owner-document node) (find-namespace-url child-ns) child-name)))
+          (dom:append-child node new-node)
+          new-node)
+        ;; Else, return the first found node
+        (xpath:first-node result))))
+
+(defun replace-node-text (node text)
+  (map nil #'(lambda (n)
+               (when (dom:text-node-p n)
+                 (dom:remove-child node n)))
+       (dom:child-nodes node))
+  (let ((text-node (dom:create-text-node (dom:owner-document node) text)))
+    (dom:append-child node text-node)))
+
+(defun update-text-with-create (node text path)
+  (loop
+     with current = node
+     for (entry-ns entry-name) in path
+     do (setq current (find-or-create-child-node current entry-ns entry-name))
+     finally (replace-node-text current text)))
+
+(defun update-full-name (node entry slot-descriptor)
+  (declare (ignore slot-descriptor))
+  (update-text-with-create node entry '(("gd" "name")
+                                        ("gd" "fullName"))))
+
+(defun update-given-name (node entry slot-descriptor)
+  (declare (ignore slot-descriptor))
+  (update-text-with-create node entry '(("gd" "name")
+                                        ("gd" "givenName"))))
+
+(defun update-family-name (node entry slot-descriptor)
+  (declare (ignore slot-descriptor))
+  (update-text-with-create node entry '(("gd" "name")
+                                        ("gd" "familyName"))))
+
 (defclass contact (atom-feed-entry)
   ((full-name    :type (or null string)
 		 :accessor full-name
                  :node "gd:name/gd:fullName/text()"
-                 :node-updater-function update-from-xpath
+                 :node-updater-function update-full-name
 		 :documentation "Content of the <gd:name><gd:fullName> node")
    (given-name   :type (or null string)
 		 :accessor given-name
                  :node "gd:name/gd:givenName/text()"
-                 :node-updater-function update-from-xpath
+                 :node-updater-function update-given-name
 		 :documentation "Content of the <gd:name><gd:givenName> node")
    (family-name  :type (or null string)
 		 :accessor family-name
                  :node "gd:name/gd:familyName/text()"
-                 :node-updater-function update-from-xpath
+                 :node-updater-function update-family-name
 		 :documentation "Content of the <gd:name><gd:familyName> node")
    (email        :type list
 		 :accessor email
