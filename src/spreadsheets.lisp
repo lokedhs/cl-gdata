@@ -246,7 +246,6 @@ NUMERIC-VALUE - the numeric content of the cell, or NIL if the cell is not numer
             (t
              (error "Unknown data in row ~d col ~d: ~s" row col cell))))))
 
-
 ;;;
 ;;; Uploading spreadsheet updates
 ;;;
@@ -299,7 +298,7 @@ NUMERIC-VALUE - the numeric content of the cell, or NIL if the cell is not numer
   ((failed-cells :type list
                  :initarg :failed-cells
                  :reader cell-update-error-cell-dom
-                 :documentation "A list of the DOM nodes describing thedefi error nodes from the server"))
+                 :documentation "A list of the DOM nodes describing the error nodes from the server"))
   (:documentation "Condition that is raised if there is a problem uploading the spreadsheet."))
 
 (defun save-updated-cells (worksheet &key (session *gdata-session*))
