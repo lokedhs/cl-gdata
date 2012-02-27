@@ -133,8 +133,15 @@ or a string in standard ISO format."
 
 (defun upload-document (file &key title description
                                (session *gdata-session*) (chunk-size (* 512 1024)) (convert nil)
-                                     (content-type "application/octet-stream"))
-  "Upload a document to Google."
+                               (content-type "application/octet-stream") (progress-update nil))
+  "Upload a document to Google. TITLE indicates the document name under which the file will
+be stored. DESCRIPTION is the description of the file. CHUNK-SIZE indicates the size of
+each upload chunk. This value must be a multiple of 512 kB. In non-NIL, CONVERT indicates
+that the file should be converted to the apropriate document format. For example, word
+processing documents will be converted to an editable Google Docs document.
+CONTENT-TYPE specifies the format of the data. If given, PROGRESS-UPDATE will be called
+after each chunk has been uploaded. It will be called with one argument, the number of bytes
+uploaded."
   (unless (and (plusp chunk-size)
                (zerop (mod chunk-size (* 512 1024))))
     (error "CHUNK-SIZE must be greater than zero and a multiple of 512 kB"))
@@ -145,42 +152,52 @@ or a string in standard ISO format."
       (let ((upload-url (value-by-xpath (format nil "/atom:feed/atom:link[@rel='~a']/@href" +RESUMABLE-CREATE-MEDIA-REF+) doc)))
         (with-open-file (input-stream file :element-type '(unsigned-byte 8))
           (let ((length (file-length input-stream)))
-            (labels ((upload-next-chunk (result-stream headers start-offset previous-location)
-                       (declare (ignore result-stream))
+            (labels ((upload-next-chunk (headers start-offset previous-location)
                        (let ((location (or (cdr (assoc :location headers)) previous-location))
                              (content-length (min (- length start-offset) chunk-size)))
-                         (http-request-with-stream location
-                                                   #'(lambda (result-stream headers code)
-                                                       (case code
-                                                         (308 (upload-next-chunk result-stream headers (+ start-offset chunk-size) location))
-                                                         (201 (parse-result-stream result-stream))))
-                                                   :session session
-                                                   :method :put
-                                                   :version "3.0"
-                                                   :content-type content-type
-                                                   :content-length content-length
-                                                   :content #'(lambda (s) (copy-stream-with-limit input-stream s chunk-size))
-                                                   :accepted-status '(201 308)
-                                                   :additional-headers `(("Content-Range" . ,(format nil "bytes ~a-~a/~a"
-                                                                                                     start-offset
-                                                                                                     (1- (+ start-offset content-length))
-                                                                                                     length)))))))
+                         (let ((upload-result
+                                (http-request-with-stream location
+                                                          #'(lambda (result-stream headers code)
+                                                              (case code
+                                                                (308 (list :upload-next headers))
+                                                                (201 (list :upload-done (parse-result-stream result-stream)))))
+                                                          :session session
+                                                          :method :put
+                                                          :version "3.0"
+                                                          :content-type content-type
+                                                          :content-length content-length
+                                                          :content #'(lambda (s) (copy-stream-with-limit input-stream s chunk-size))
+                                                          :accepted-status '(201 308)
+                                                          :additional-headers `(("Content-Range" . ,(format nil "bytes ~a-~a/~a"
+                                                                                                            start-offset
+                                                                                                            (1- (+ start-offset content-length))
+                                                                                                            length))))))
+                           (ecase (car upload-result)
+                             (:upload-next
+                              (let ((next-offset (+ start-offset chunk-size)))
+                                (when progress-update
+                                  (funcall progress-update next-offset))
+                                (upload-next-chunk (cadr upload-result) next-offset location)) ())
+                             (:upload-done
+                              (cadr upload-result)))))))
 
-              (http-request-with-stream (format nil "~a~a" upload-url (if convert "" "?convert=false"))
-                                        #'(lambda (result-stream headers code)
-                                            (declare (ignore code))
-                                            (upload-next-chunk result-stream headers 0 nil))
-                                        :session session
-                                        :method :post
-                                        :version "3.0"
-                                        :content-type "application/atom+xml"
-                                        :content #'(lambda (s)
-                                                     (%upload-document-send-metadata s
-                                                                                     (or title
-                                                                                         (name-from-filename file))
-                                                                                     description))
-                                        :additional-headers `(("X-Upload-Content-Type" . ,content-type)
-                                                              ("X-Upload-Content-Length" . ,(princ-to-string length)))))))))))
+              (let ((upload-result (http-request-with-stream (format nil "~a~a" upload-url (if convert "" "?convert=false"))
+                                                             #'(lambda (result-stream headers code)
+                                                                 (declare (ignore result-stream code))
+                                                                 (list :upload-next headers))
+                                                             :session session
+                                                             :method :post
+                                                             :version "3.0"
+                                                             :content-type "application/atom+xml"
+                                                             :content #'(lambda (s)
+                                                                          (%upload-document-send-metadata s
+                                                                                                          (or title
+                                                                                                              (name-from-filename file))
+                                                                                             description))
+                                                             :additional-headers `(("X-Upload-Content-Type" . ,content-type)
+                                                                                   ("X-Upload-Content-Length" . ,(princ-to-string length))))))
+                (ecase (car upload-result)
+                  (:upload-next (upload-next-chunk (cadr upload-result) 0 nil)))))))))))
 
 (defun delete-document (document &key (session *gdata-session*) (delete nil))
     (http-request-with-stream (format nil "~a~a"
