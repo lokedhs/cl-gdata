@@ -158,7 +158,7 @@ uploaded."
                          (let ((upload-result
                                 (http-request-with-stream location
                                                           #'(lambda (result-stream headers code)
-                                                              (case code
+                                                              (ecase code
                                                                 (308 (list :upload-next headers))
                                                                 (201 (list :upload-done (parse-result-stream result-stream)))))
                                                           :session session
