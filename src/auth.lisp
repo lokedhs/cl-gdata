@@ -84,8 +84,7 @@
   (http-request-with-stream url
                             #'(lambda (s received-headers code)
                                 (declare (ignore received-headers code))
-                                (let ((result (cxml:parse-stream s (cxml-dom:make-dom-builder))))
-                                  result))
+                                (cxml:parse-stream s (cxml-dom:make-dom-builder)))
                             :session session
                             :method method
                             :content-type content-type
