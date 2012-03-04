@@ -136,7 +136,7 @@ or a string in standard ISO format."
                                (content-type "application/octet-stream") (progress-update nil))
   "Upload a document to Google. TITLE indicates the document name under which the file will
 be stored. DESCRIPTION is the description of the file. CHUNK-SIZE indicates the size of
-each upload chunk. This value must be a multiple of 512 kB. In non-NIL, CONVERT indicates
+each upload chunk. This value must be a multiple of 512 kB. If non-NIL, CONVERT indicates
 that the file should be converted to the apropriate document format. For example, word
 processing documents will be converted to an editable Google Docs document.
 CONTENT-TYPE specifies the format of the data. If given, PROGRESS-UPDATE will be called
