@@ -65,9 +65,13 @@
 ;;;  Calendar access functions
 ;;;
 
-(defun list-calendars (&key (api-key *gdata-api-key*) )
+(defun check-api-key (api-key)
   (unless api-key
-    (error "GData API key must be given"))
+    (error "GData API key must be given. Create a key at http://code.google.com/apis/console/ then
+either set *GDATA-API-KEY* to the key, or pass it using the API-KEY keyword argument.")))
+
+(defun list-calendars (&key (api-key *gdata-api-key*) )
+  (check-api-key api-key)
   (let ((data (load-and-parse-json (format nil "https://www.googleapis.com/calendar/v3/users/me/calendarList?key=~a"
                                            (url-rewrite:url-encode api-key)))))
     (mapcar #'(lambda (v)
@@ -75,6 +79,7 @@
             (cdr (assoc :items data)))))
 
 (defun list-events (calendar &key (api-key *gdata-api-key*))
+  (check-api-key api-key)
   "List calendar events. CALENDAR is either an instance of calendar, or
 a calendar id string."
   (let ((id (etypecase calendar
