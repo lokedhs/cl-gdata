@@ -3,9 +3,13 @@
 (declaim #.cl-gdata::*compile-decl*)
 
 (defun parse-timestamp (data)
-  (unless (and (listp data) (null (cdr data)) (eq (caar data) :date-time))
-    (error "Unexpected timestamp data: ~s" data))
-  (local-time:parse-timestring (cdar data)))
+  (unless (and (listp data) (null (cdr data)))
+    (error "Unknown timestamp format: ~s" data))
+  (let ((inner (car data)))
+    (ecase (car inner)
+      (:date-time (local-time:parse-timestring (cdr inner)))
+      (:date      (local-time:parse-timestring (cdr inner)))
+      )))
 
 ;;;
 ;;; CALENDAR
@@ -36,6 +40,10 @@
 (defclass event (json-instance)
   ((id          :type string
                 :reader event-id)
+   (created     :type local-time:timestamp
+                :reader event-created)
+   (updated     :type local-time:timestamp
+                :reader event-updated)
    (summary     :type (or null string)
                 :reader event-summary)
    (start       :type local-time:timestamp
@@ -47,6 +55,8 @@
 (defmethod initialize-instance :after ((obj event) &rest initargs)
   (declare (ignore initargs))
   (init-json-fields obj `((id :id)
+                          (created :created ,#'local-time:parse-timestring)
+                          (updated :updated ,#'local-time:parse-timestring)
                           (summary :summary)
                           (start :start ,#'parse-timestamp)
                           (end :end ,#'parse-timestamp))))
