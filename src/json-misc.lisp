@@ -9,7 +9,6 @@
   (:documentation "Superclass for objects backed by a JSON structure."))
 
 (defun init-json-fields (obj definitions)
-  (format t "defs=~s~%" definitions)
   (let ((data (json-instance-data obj)))
     (mapcar #'(lambda (v)
                 (destructuring-bind (slot data-value &optional parse-function) v

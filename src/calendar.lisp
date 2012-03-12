@@ -3,7 +3,6 @@
 (declaim #.cl-gdata::*compile-decl*)
 
 (defun parse-timestamp (data)
-  (format t "parsing ~s~%" data)
   (unless (and (listp data) (null (cdr data)) (eq (caar data) :date-time))
     (error "Unexpected timestamp data: ~s" data))
   (local-time:parse-timestring (cdar data)))
@@ -47,7 +46,6 @@
 
 (defmethod initialize-instance :after ((obj event) &rest initargs)
   (declare (ignore initargs))
-  (format t "raw: ~s~%" (cl-gdata-misc::json-instance-data obj))
   (init-json-fields obj `((id :id)
                           (summary :summary)
                           (start :start ,#'parse-timestamp)
