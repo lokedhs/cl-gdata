@@ -2,6 +2,12 @@
 
 (declaim #.cl-gdata::*compile-decl*)
 
+(defun parse-timestamp (data)
+  (format t "parsing ~s~%" data)
+  (unless (and (listp data) (null (cdr data)) (eq (caar data) :date-time))
+    (error "Unexpected timestamp data: ~s" data))
+  (local-time:parse-timestring (cdar data)))
+
 ;;;
 ;;; CALENDAR
 ;;;
@@ -18,8 +24,7 @@
 (defmethod initialize-instance :after ((obj calendar) &rest initargs)
   (declare (ignore initargs))
   (init-json-fields obj '((id :id)
-                          (summary :summary)))
-  )
+                          (summary :summary))))
 
 (defmethod print-object ((obj calendar) out)
   (print-unreadable-safely (summary) obj out
@@ -33,17 +38,28 @@
   ((id          :type string
                 :reader event-id)
    (summary     :type (or null string)
-                :reader event-summary))
+                :reader event-summary)
+   (start       :type local-time:timestamp
+                :reader event-start)
+   (end         :type local-time:timestamp
+                :reader event-end))
   (:documentation "Class that describes a calendar event"))
 
 (defmethod initialize-instance :after ((obj event) &rest initargs)
   (declare (ignore initargs))
-  (init-json-fields obj '((id :id)
-                          (summary :summary))))
+  (format t "raw: ~s~%" (cl-gdata-misc::json-instance-data obj))
+  (init-json-fields obj `((id :id)
+                          (summary :summary)
+                          (start :start ,#'parse-timestamp)
+                          (end :end ,#'parse-timestamp))))
 
 (defmethod print-object ((obj event) out)
-  (print-unreadable-safely (summary) obj out
-    (format out "~s" summary)))
+  (flet ((format-timestamp (v)
+           (if (typep v 'local-time:timestamp)
+               (local-time:format-timestring nil v :format local-time:+asctime-format+)
+               v)))
+    (print-unreadable-safely (summary start end) obj out
+      (format out "~s ~a - ~a" summary (format-timestamp start) (format-timestamp end)))))
 
 (defun list-calendars (&key (api-key *gdata-api-key*) )
   (unless api-key
