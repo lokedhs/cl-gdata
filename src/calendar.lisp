@@ -55,6 +55,8 @@
 
 (defmethod print-object ((obj event) out)
   (flet ((format-timestamp (v)
+           ;; Safe timestamp pronting function that avoids any print-time errors
+           ;; if for some reason the slot is unbound or contains unexpected data
            (if (typep v 'local-time:timestamp)
                (local-time:format-timestring nil v :format local-time:+asctime-format+)
                v)))
