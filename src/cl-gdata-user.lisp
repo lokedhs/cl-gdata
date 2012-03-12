@@ -7,4 +7,7 @@
         :cl-gdata-spreadsheets
         :cl-gdata-picasa
         :cl-gdata-issue-tracker
-        :cl-gdata-clientlogin))
+        :cl-gdata-clientlogin
+        :cl-gdata-calendar)
+  (:export
+   :cl-gdata-misc))

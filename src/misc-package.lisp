@@ -36,4 +36,5 @@
            #:authentication-failed
            #:make-url-search-params
            #:cl-gdata-date-value
-           #:parse-date-string))
+           #:parse-date-string
+           #:load-and-parse-json))

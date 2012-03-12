@@ -3,7 +3,8 @@
   (:export #:gdata-authenticate
            #:authentication-failed
            #:*verbose-http-errors*
-           #:*gdata-session*))
+           #:*gdata-session*
+           #:*gdata-api-key*))
 
 (in-package :cl-gdata)
 

@@ -64,7 +64,7 @@
       (when should-close
         (close stream)))))
 
-(defun debug-get-and-display-url (url)
+(defun debug-get-and-display-url (url &key additional-headers)
   "Debug function that prints the content of the given URL. Only to be used for testing."
   (http-request-with-stream url
                             #'(lambda (s h c)
@@ -75,7 +75,8 @@
                                   (loop
                                      for s = (read-line input nil nil)
                                      while s
-                                     do (format *debug-io* "~a~%" s)))))  )
+                                     do (format *debug-io* "~a~%" s))))
+                            :additional-headers additional-headers))
 
 (defun load-and-parse (url &key
                        (session *gdata-session*) (method :get) (content-type nil)

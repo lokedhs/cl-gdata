@@ -23,7 +23,8 @@
                :trivial-utf-8
                :alexandria
                :string-case
-               :local-time)
+               :local-time
+               :cl-json)
   :components ((:module src
                         :serial t
                         :components ((:file "package")
@@ -37,6 +38,7 @@
                                      (:file "issue-tracker-package")
                                      (:file "cl-gdata-user")
                                      (:file "misc")
+                                     (:file "json-misc")
                                      (:file "xml-misc")
                                      (:file "cl-gdata")
                                      (:file "auth")
@@ -47,4 +49,5 @@
                                      (:file "spreadsheets")
                                      (:file "contacts")
                                      (:file "picasa")
-                                     (:file "issue-tracker")))))
+                                     (:file "issue-tracker")
+                                     (:file "calendar")))))
