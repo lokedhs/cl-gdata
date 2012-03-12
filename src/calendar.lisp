@@ -61,6 +61,10 @@
     (print-unreadable-safely (summary start end) obj out
       (format out "~s ~a - ~a" summary (format-timestamp start) (format-timestamp end)))))
 
+;;;
+;;;  Calendar access functions
+;;;
+
 (defun list-calendars (&key (api-key *gdata-api-key*) )
   (unless api-key
     (error "GData API key must be given"))
