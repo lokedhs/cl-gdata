@@ -11,7 +11,7 @@
             :reader calendar-id
             :initarg :id)
    (summary :type string
-            :accessor calendar-name
+            :accessor calendar-summary
             :initarg :summary))
   (:documentation "Class that describes a calendar"))
 
@@ -32,18 +32,18 @@
 (defclass event (json-instance)
   ((id          :type string
                 :reader event-id)
-   (description :type (or null string)
-                :reader event-description))
+   (summary     :type (or null string)
+                :reader event-summary))
   (:documentation "Class that describes a calendar event"))
 
 (defmethod initialize-instance :after ((obj event) &rest initargs)
   (declare (ignore initargs))
   (init-json-fields obj '((id :id)
-                          (description :description))))
+                          (summary :summary))))
 
 (defmethod print-object ((obj event) out)
-  (print-unreadable-safely (description) obj out
-    (format out "~s" description)))
+  (print-unreadable-safely (summary) obj out
+    (format out "~s" summary)))
 
 (defun list-calendars (&key (api-key *gdata-api-key*) )
   (unless api-key

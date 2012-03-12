@@ -37,4 +37,6 @@
            #:make-url-search-params
            #:cl-gdata-date-value
            #:parse-date-string
-           #:load-and-parse-json))
+           #:load-and-parse-json
+           #:json-instance
+           #:init-json-fields))
