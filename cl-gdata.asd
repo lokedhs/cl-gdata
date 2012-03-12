@@ -36,6 +36,7 @@
                                      (:file "picasa-package")
                                      (:file "contacts-package")
                                      (:file "issue-tracker-package")
+                                     (:file "calendar-package")
                                      (:file "cl-gdata-user")
                                      (:file "misc")
                                      (:file "json-misc")
