@@ -81,6 +81,7 @@
 either set *GDATA-API-KEY* to the key, or pass it using the API-KEY keyword argument.")))
 
 (defun list-calendars (&key (api-key *gdata-api-key*) )
+  "List all calendars for the authenticated user."
   (check-api-key api-key)
   (let ((data (load-and-parse-json (format nil "https://www.googleapis.com/calendar/v3/users/me/calendarList?key=~a"
                                            (url-rewrite:url-encode api-key)))))
@@ -89,9 +90,9 @@ either set *GDATA-API-KEY* to the key, or pass it using the API-KEY keyword argu
             (cdr (assoc :items data)))))
 
 (defun list-events (calendar &key (api-key *gdata-api-key*))
-  (check-api-key api-key)
   "List calendar events. CALENDAR is either an instance of calendar, or
 a calendar id string."
+  (check-api-key api-key)
   (let ((id (etypecase calendar
               (string calendar)
               (calendar (calendar-id calendar)))))
