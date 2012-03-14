@@ -75,11 +75,6 @@
 ;;;  Calendar access functions
 ;;;
 
-(defun check-api-key (api-key)
-  (unless api-key
-    (error "GData API key must be given. Create a key at http://code.google.com/apis/console/ then
-either set *GDATA-API-KEY* to the key, or pass it using the API-KEY keyword argument.")))
-
 (defun list-calendars (&key (api-key *gdata-api-key*) )
   "List all calendars for the authenticated user."
   (check-api-key api-key)

@@ -39,4 +39,6 @@
            #:parse-date-string
            #:load-and-parse-json
            #:json-instance
-           #:init-json-fields))
+           #:init-json-fields
+           #:check-api-key
+           #:no-api-key-specified))

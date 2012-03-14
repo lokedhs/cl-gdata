@@ -68,3 +68,35 @@ http://www.example.com/foo?bar=10&xyz=foo"
        do (progn
             (format s "~a~a=~a" (if first "?" "&") tag (url-rewrite:url-encode (princ-to-string value)))
             (setq first nil)))))
+
+;;;
+;;;  API-KEY handling
+;;;
+
+(define-condition no-api-key-specified (error)
+  ()
+  (:report (lambda (condition out)
+             (declare (ignore condition))
+             (format out "GData API key must be given. Create a key at http://code.google.com/apis/console/ then
+either set *GDATA-API-KEY* to the key, or pass it using the API-KEY keyword argument.")))
+  (:documentation "Condition that is signalled if the API key has not been set when accessing a service."))
+
+(defun read-new-api-key ()
+  (format t "Enter new API key: ")
+  (finish-output)
+  (let ((key (read-line)))
+    (list key)))
+
+(defun check-or-assign-api-key (api-key)
+  (restart-case
+      (progn
+        (unless api-key
+          (error 'no-api-key-specified))
+        api-key)
+    (specify-api-key (new-api-key)
+      :report "Specify API key"
+      :interactive read-new-api-key
+      (check-or-assign-api-key new-api-key))))
+
+(defmacro check-api-key (v)
+  `(setq ,v (check-or-assign-api-key ,v)))
