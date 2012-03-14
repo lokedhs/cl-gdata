@@ -33,8 +33,10 @@ contains the authentication key as the value")))
 
 (defun read-new-username-and-passwd ()
   (format t "Enter new username: ")
+  (finish-output)
   (let ((username (read-line)))
     (format t "Enter new password: ")
+    (finish-output)
     (let ((password (read-line)))
       (list username password))))
 
