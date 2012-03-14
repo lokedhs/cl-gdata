@@ -15,6 +15,10 @@ Elias Mårtenson
 cl-gdata is a project aimed at implementing the Google GData API's in
 Common Lisp.
 
+Source code can be found at: http://code.google.com/p/cl-gdata/
+Web site: http://source.dhsdevelopments.com/home/cl-gdata
+Google Group: https://groups.google.com/forum/?fromgroups#!forum/cl-gdata
+
 * Compatilibity
 
 cl-gdata is being developed on SBCL, but all attempts are made to keep
