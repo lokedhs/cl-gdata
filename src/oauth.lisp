@@ -33,7 +33,7 @@
 ;;; set up callback uri
 (defun callback-dispatcher (request)
   (declare (ignorable request))
-  (unless (cl-ppcre:scan  "favicon\.ico$" (hunchentoot:script-name request))
+  (unless (cl-ppcre:scan "favicon\.ico$" (hunchentoot:script-name request))
     (lambda (&rest args)
       (declare (ignore args))
       (handler-case
