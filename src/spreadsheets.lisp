@@ -47,7 +47,7 @@ if the cell does not contain a number")
   (print-unreadable-safely (input-value value new-input-value) obj out
     (format out "~s~a~a"
             value
-            (if (string= value input-value)
+            (if (equal value input-value)
                 ""
                 (format nil " INPUT-VALUE ~s" input-value))
             (if new-input-value
