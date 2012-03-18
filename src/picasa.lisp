@@ -75,6 +75,9 @@ username whose albmus should be retrieved. Defaults to the current user."
                        :node "gphoto:commentCount/text()"
                        :node-type :number
                        :documentation "The number of comments that has been posted for this photo")
+   (tags               :type list
+                       :reader photo-tags
+                       :documentation "A list of tags asscicated with the photo")
    ;; EXIF data
    (exif-fstop         :type (or null number)
                        :reader photo-exif-fstop
@@ -114,12 +117,20 @@ username whose albmus should be retrieved. Defaults to the current user."
   (:documentation "Class that represents a single photo in an album.")
   (:metaclass atom-feed-entry-class))
 
+(defmethod initialize-instance :after ((obj photo) &key &allow-other-keys)
+  (setf (slot-value obj 'tags)
+        (alexandria:when-let ((keywords-node (value-by-xpath "media:group/media:keywords/text()" (node-dom obj) :default-value nil)))
+          (loop
+             for v in (split-sequence:split-sequence #\, keywords-node)
+             collect (string-trim " " v)))))
+
 (defun list-photos-from-url (url &key (session *gdata-session*))
   "Return a list of photos in a given album specified using the Picasa album url format"
   (load-atom-feed-url url 'photo :session session))
 
 (defun list-photos (album &key (session *gdata-session*))
   "Return a list of photos in a given album"
+  (check-type album album)
   (list-photos-from-url (find-feed-from-atom-feed-entry album +ATOM-TAG-FEED+) :session session))
 
 (defun photo-image-types (photo)
