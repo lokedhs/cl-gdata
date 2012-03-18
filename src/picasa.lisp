@@ -118,6 +118,7 @@ username whose albmus should be retrieved. Defaults to the current user."
   (:metaclass atom-feed-entry-class))
 
 (defmethod initialize-instance :after ((obj photo) &key &allow-other-keys)
+  ;; Set up tags
   (setf (slot-value obj 'tags)
         (alexandria:when-let ((keywords-node (value-by-xpath "media:group/media:keywords/text()" (node-dom obj) :default-value nil)))
           (loop
