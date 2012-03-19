@@ -127,6 +127,7 @@ username whose albmus should be retrieved. Defaults to the current user."
 
 (defun list-photos-from-url (url &key (session *gdata-session*))
   "Return a list of photos in a given album specified using the Picasa album url format"
+  (check-type url string)
   (load-atom-feed-url url 'photo :session session))
 
 (defun list-photos (album &key (session *gdata-session*))
@@ -142,6 +143,7 @@ username whose albmus should be retrieved. Defaults to the current user."
 (defun download-photo-to-stream (photo out-stream &key type)
   "Download the given photo and write the content to OUT-STREAM. If given, TYPE indicates
 the image type to download. TYPE must be one of the types returned by PHOTO-IMAGE-TYPES."
+  (check-type photo photo)
   (let ((url (if type
                  (find type (photo-content photo))
                  (car (photo-content photo)))))
@@ -166,6 +168,7 @@ the image type to download. TYPE must be one of the types returned by PHOTO-IMAG
 the image type to download. TYPE must be one of the types returned by PHOTO-IMAGE-TYPES.
 If the OVERWRITE keyword is non-NIL, an existing file will be overwritten, otherwise
 an error will be raised."
+  (check-type photo photo)
   (with-open-file (out filespec
                        :direction :output
                        :if-exists (if overwrite :supersede :error)
@@ -180,6 +183,7 @@ an error will be raised."
 TYPE is the mime-type of the photo and must be one of the allowed types in *ALLOWED-IMAGE-MIME-TYPES*.
 STREAM must be a binary input stream from which to read the image data. TITLE is the title of
 the photo. SUMMARY is the summary for the photo."
+  (check-type album album)
   (unless (member type *allowed-image-mime-types* :test #'equal)
     (error "Image type ~a must be one of ~s" type *allowed-image-mime-types*))
   (let ((url (find-feed-from-atom-feed-entry album +ATOM-TAG-FEED+))
