@@ -14,4 +14,5 @@
            #:download-document
            #:list-doc-acls
            #:folder
-           #:drawing))
+           #:drawing
+           #:download-document-to-file))
