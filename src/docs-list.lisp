@@ -215,6 +215,8 @@ an input stream as an argument. CONTENT-TYPE indicates the desired format
 of the downloaded data. If NIL, then download the file in the default format.
 Note that most files are only available in a single format, so NIL is usually
 the correct value for this parameter."
+  (check-type document document)
+  (check-type destination function)
   (with-gdata-namespaces
     (let ((content-node-list (xpath:evaluate (format nil "atom:content~a"
                                                      (if content-type
