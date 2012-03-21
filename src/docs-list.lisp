@@ -233,14 +233,15 @@ the correct value for this parameter."
                                   :force-binary t
                                   :version "3.0")))))
 
-(defun download-document-to-file (document destination &key (session *gdata-session*) overwrite)
+(defun download-document-to-file (document destination &key (session *gdata-session*) content-type overwrite)
   "Downloads DOCUMENT to a file. DESTINATION is the name of the file.
 If the file already exists and OVERWRITE is non-NIL, overwrite the file,
-otherwise signal an error."
+otherwise signal an error. CONTENT-TYPE is specified as per DOWNLOAD-DOCUMENT."
   (with-open-file (s destination
                      :direction :output
                      :element-type '(unsigned-byte 8)
                      :if-exists (if overwrite :supersede :error))
     (download-document document #'(lambda (in-stream)
                                     (cl-fad:copy-stream in-stream s))
-                       :session session)))
+                       :session session
+                       :content-type content-type)))
