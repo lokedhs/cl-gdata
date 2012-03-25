@@ -90,7 +90,7 @@ If :SHOWFOLDERS is non-NIL, the resulting list will also contain folder objects.
 If :QUERY-STRING is non-NIL, it is used as a search term.
 
 If given, :UPDATED-MIN indicates the oldest documents that should be included in the
-output. The value can be either a universal time value, an a local-time instance,
+output. The value can be either a universal time value, a local-time instance,
 or a string in standard ISO format."
   (check-type max-results (or null alexandria:non-negative-integer))
   (check-type query-string (or null string))
