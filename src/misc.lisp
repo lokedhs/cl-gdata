@@ -6,6 +6,8 @@
 
 (declaim #.cl-gdata::*compile-decl*)
 
+(alexandria:define-constant +SCHEME-KIND+ "http://schemas.google.com/g/2005#kind" :test 'equal)
+
 (defmacro print-unreadable-safely ((&rest slots) object stream &body body)
   "A version of PRINT-UNREADABLE-OBJECT and WITH-SLOTS that is safe to use with unbound slots"
   (let ((object-copy (gensym "OBJECT"))

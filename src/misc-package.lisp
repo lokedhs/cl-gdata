@@ -41,4 +41,5 @@
            #:json-instance
            #:init-json-fields
            #:check-api-key
-           #:no-api-key-specified))
+           #:no-api-key-specified
+           #:+SCHEME-KIND+))

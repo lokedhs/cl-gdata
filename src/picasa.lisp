@@ -196,7 +196,7 @@ the photo. SUMMARY is the summary for the photo."
                                         ,@(when title `((("atom" "title") ,title)))
                                         ,@(when summary `((("atom" "summary") ,summary)))
                                         (("atom" "category"
-                                                 "scheme" "http://schemas.google.com/g/2005#kind"
+                                                 "scheme" +SCHEME-KIND+
                                                  "term" "http://schemas.google.com/photos/2007#photo")))
                                       outstream)
                (format outstream "~a--~a~a" +CRLF+ boundary +CRLF+)

@@ -2,6 +2,7 @@
 
 (declaim #.cl-gdata::*compile-decl*)
 
+(alexandria:define-constant +CREATE-MEDIA-URL+ "https://docs.google.com/feeds/default/private/full" :test 'equal)
 (alexandria:define-constant +DOCS-THUMBNAIL+ "http://schemas.google.com/docs/2007/thumbnail" :test 'equal)
 (alexandria:define-constant +RESUMABLE-CREATE-MEDIA-REF+ "http://schemas.google.com/g/2005#resumable-create-media" :test 'equal)
 (alexandria:define-constant +DOCS-ACCESS-CONTROL-FEED+ "http://schemas.google.com/acl/2007#accessControlList" :test 'equal)
@@ -146,7 +147,7 @@ uploaded."
                (zerop (mod chunk-size (* 512 1024))))
     (error "CHUNK-SIZE must be greater than zero and a multiple of 512 kB"))
 
-  (let ((doc (load-and-parse "https://docs.google.com/feeds/default/private/full" :session session)))
+  (let ((doc (load-and-parse +CREATE-MEDIA-URL+ :session session)))
     (with-gdata-namespaces                                             
 
       (let ((upload-url (value-by-xpath (format nil "/atom:feed/atom:link[@rel='~a']/@href" +RESUMABLE-CREATE-MEDIA-REF+) doc)))
@@ -222,3 +223,18 @@ an input stream as an argument."
                                 :session session
                                 :force-binary t
                                 :version "3.0"))))
+
+(defun create-document (title &key (session *gdata-session*))
+  (with-gdata-namespaces
+    (load-and-parse +CREATE-MEDIA-URL+
+                    :session session
+                    :method :post
+                    :content  #'(lambda (s)
+                                  (build-atom-xml-stream `(("atom" "entry" )
+                                                           (("atom" "category"
+                                                                    "scheme" ,+SCHEME-KIND+
+                                                                    "term" "http://schemas.google.com/docs/2007#document")
+                                                            (("atom" "title") ,title)))
+                                                         s))
+                    :additional-headers '(("X-Upload-Content-Length" . 0))
+                    :version "3.0")))

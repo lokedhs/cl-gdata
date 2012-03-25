@@ -29,4 +29,5 @@
            #:download-photo-to-stream
            #:download-photo-to-file
            #:upload-photo
-           #:list-albums))
+           #:list-albums
+           #:photo-tags))
