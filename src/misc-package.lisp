@@ -42,4 +42,5 @@
            #:init-json-fields
            #:check-api-key
            #:no-api-key-specified
-           #:+SCHEME-KIND+))
+           #:+SCHEME-KIND+
+           #:atom-xml-writer))

@@ -51,23 +51,32 @@
 ;;;   An element node consists of a list with two elements: namespace and name
 ;;;   A text node consists of a simple string
 ;;;
-;;; Another example:
-;;;
-;;;  <foo>
-;;;    <bar>hello</bar>
-;;;    <inner>
-;;;       <xyz foo="bar">text here</xyz>
-;;;    </inner>
-;;;  </foo>
-;;;
-;;; Resulting sexp:
-;;;
-;;; (("atom" "foo")
-;;;    (("atom" "bar") "hello")
-;;;    (("atom" "inner")
-;;;        (("atom" "xyz" "foo" "bar") "text here")))
-;;;
 (defun build-atom-document (content)
+  "Given a sexp-based structure of an atom document, return a
+DOM tree describing the corresponding XML document.
+
+The data structure is a list of elements. An element can be
+either a node definition or a simple string. A node definition
+is a list where the two first elements is the namespace name
+and the node name respectively. The further list entries are
+pairs of strings, the first of which is an attribute name and
+the second is the attribute value.
+
+For example, consider the following XML snippet:
+
+<atom:foo>
+  <atom:bar>hello</atom:bar>
+  <atom:inner>
+    <atom:xyz foo=\"bar\">text here</atom:xyz>
+  </atom:inner>
+</atom:foo>
+
+The resulting sexp would then look like this:
+
+\(\(\"atom\" \"foo\")
+ \(\(\"atom\" \"bar\") \"hello\")
+ \(\(\"atom\" \"inner\")
+  \(\(\"atom\" \"xyz\" \"foo\" \"bar\") \"text here\")))"
   (check-type content list)
   (let ((doc (cxml-dom:create-document)))
     (labels ((append-subtree (node tree)
@@ -91,8 +100,16 @@
       doc)))
 
 (defun build-atom-xml-stream (content stream)
+  "Convert the atom structure in CONTENT as per BUILD-ATOM-DOCUMENT and write the
+resulting XML data to STREAM."
   (dom:map-document (cxml:make-namespace-normalizer (cxml:make-character-stream-sink stream))
                     (build-atom-document content)))
+
+(defun atom-xml-writer (content)
+  "Return a function that when called with a stream STREAM, will apply
+BUILD-ATOM-XML-STREAM on CONTENT and STREAM."
+  #'(lambda (stream)
+      (build-atom-xml-stream content stream)))
 
 (defun debug-print-dom (doc &optional (stream *standard-output*))
   (dom:map-document (cxml:make-namespace-normalizer (cxml:make-character-stream-sink stream)) doc))

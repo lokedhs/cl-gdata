@@ -226,15 +226,16 @@ an input stream as an argument."
 
 (defun create-document (title &key (session *gdata-session*))
   (with-gdata-namespaces
-    (load-and-parse +CREATE-MEDIA-URL+
-                    :session session
-                    :method :post
-                    :content  #'(lambda (s)
-                                  (build-atom-xml-stream `(("atom" "entry" )
+    (let ((doc (load-and-parse +CREATE-MEDIA-URL+
+                               :session session
+                               :method :post
+                               :content-type +ATOM-XML-MIME-TYPE+
+                               :content (atom-xml-writer `(("atom" "entry" )
                                                            (("atom" "category"
                                                                     "scheme" ,+SCHEME-KIND+
-                                                                    "term" "http://schemas.google.com/docs/2007#document")
-                                                            (("atom" "title") ,title)))
-                                                         s))
-                    :additional-headers '(("X-Upload-Content-Length" . 0))
-                    :version "3.0")))
+                                                                    "term" "http://schemas.google.com/docs/2007#document"))
+                                                           (("atom" "title") ,title)))
+                               :additional-headers '(("X-Upload-Content-Length" . "0"))
+                               :accepted-status '(201)
+                               :version "3.0")))
+      (make-document-entry (xpath:first-node (xpath:evaluate "atom:entry" doc))))))
