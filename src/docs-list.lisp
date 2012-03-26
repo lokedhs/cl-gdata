@@ -57,17 +57,16 @@
 return value is the document type."
   (values-list (reverse (split-sequence:split-sequence #\: resource-id :count 2))))
 
-(defun document-type-name-to-identifier (name)
-  "Converts the type name from the resource id to an identifier.
-Currently, this is done by simply upcasing the name and interning
-it into the KEYWORD package."
-  (intern (string-upcase name) "KEYWORD"))
+(defvar *gdata-document-type-urls* '(("http://schemas.google.com/docs/2007#document" . :document)
+                                     ("http://schemas.google.com/docs/2007#file" . :document)
+                                     ("http://schemas.google.com/docs/2007#spreadsheet" . :spreadsheet)
+                                     ("http://schemas.google.com/docs/2007#drawing" . :drawing)
+                                     ("http://schemas.google.com/docs/2007#folder" . :folder)))
 
 (defun make-document-entry (node)
   (with-gdata-namespaces
-    (let* ((resource-id (value-by-xpath "gd:resourceId/text()" node))
-           (type (nth-value 1 (parse-resource-id resource-id))))
-      (make-document-from-resource node (document-type-name-to-identifier type)))))
+    (let* ((resource-id (value-by-xpath (format nil "atom:category[@scheme='~a']/@term" +SCHEME-KIND+) node)))
+      (make-document-from-resource node (cdr (assoc resource-id *gdata-document-type-urls* :test #'equal))))))
 
 (defun type-string-for-type (type)
   (ecase type
@@ -224,18 +223,21 @@ an input stream as an argument."
                                 :force-binary t
                                 :version "3.0"))))
 
-(defun create-document (title &key (session *gdata-session*))
+(defun create-document (type title &key (session *gdata-session*))
   (with-gdata-namespaces
-    (let ((doc (load-and-parse +CREATE-MEDIA-URL+
-                               :session session
-                               :method :post
-                               :content-type +ATOM-XML-MIME-TYPE+
-                               :content (atom-xml-writer `(("atom" "entry" )
-                                                           (("atom" "category"
-                                                                    "scheme" ,+SCHEME-KIND+
-                                                                    "term" "http://schemas.google.com/docs/2007#document"))
-                                                           (("atom" "title") ,title)))
-                               :additional-headers '(("X-Upload-Content-Length" . "0"))
-                               :accepted-status '(201)
-                               :version "3.0")))
-      (make-document-entry (xpath:first-node (xpath:evaluate "atom:entry" doc))))))
+    (let ((type-url (car (find type *gdata-document-type-urls* :key #'cdr :test #'equal))))
+      (unless type-url
+        (error "Unknown document type: ~s" type))
+      (let ((doc (load-and-parse +CREATE-MEDIA-URL+
+                                 :session session
+                                 :method :post
+                                 :content-type +ATOM-XML-MIME-TYPE+
+                                 :content (atom-xml-writer `(("atom" "entry" )
+                                                             (("atom" "category"
+                                                                      "scheme" ,+SCHEME-KIND+
+                                                                      "term" ,type-url))
+                                                             (("atom" "title") ,title)))
+                                 :additional-headers '(("X-Upload-Content-Length" . "0"))
+                                 :accepted-status '(201)
+                                 :version "3.0")))
+        (make-document-entry (xpath:first-node (xpath:evaluate "atom:entry" doc)))))))
