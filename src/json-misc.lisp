@@ -16,10 +16,11 @@
                     (setf (slot-value obj slot) (if parse-function (funcall parse-function v) v)))))
             definitions)))
 
-(defun load-and-parse-json (url)
+(defun load-and-parse-json (url &key (session *gdata-session*))
   (http-request-with-stream url
                             #'(lambda (s receieved-headers code)
                                 (declare (ignore receieved-headers code))
                                 (let ((char-stream (flexi-streams:make-flexi-stream s :external-format :utf8)))
                                   (json:decode-json char-stream)))
+                            :session session
                             :version "3.0"))

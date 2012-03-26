@@ -75,16 +75,17 @@
 ;;;  Calendar access functions
 ;;;
 
-(defun list-calendars (&key (api-key *gdata-api-key*) )
+(defun list-calendars (&key (api-key *gdata-api-key*) (session *gdata-session*))
   "List all calendars for the authenticated user."
   (check-api-key api-key)
   (let ((data (load-and-parse-json (format nil "https://www.googleapis.com/calendar/v3/users/me/calendarList?key=~a"
-                                           (url-rewrite:url-encode api-key)))))
+                                           (url-rewrite:url-encode api-key))
+                                   :session session)))
     (mapcar #'(lambda (v)
                 (make-instance 'calendar :data v))
             (cdr (assoc :items data)))))
 
-(defun list-events (calendar &key (api-key *gdata-api-key*))
+(defun list-events (calendar &key (api-key *gdata-api-key*) (session *gdata-session*))
   "List calendar events. CALENDAR is either an instance of calendar, or
 a calendar id string."
   (check-api-key api-key)
@@ -96,4 +97,5 @@ a calendar id string."
             (cdr (assoc :items
                         (load-and-parse-json (format nil "https://www.googleapis.com/calendar/v3/calendars/~a/events?key=~a"
                                                      (url-rewrite:url-encode id)
-                                                     (url-rewrite:url-encode api-key))))))))
+                                                     (url-rewrite:url-encode api-key))
+                                             :session session))))))
