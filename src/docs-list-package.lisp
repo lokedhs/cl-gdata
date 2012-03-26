@@ -15,4 +15,5 @@
            #:list-doc-acls
            #:folder
            #:drawing
+           #:download-document-to-file
            #:create-document))

@@ -209,19 +209,42 @@ uploaded."
                               :additional-headers '(("If-Match" . "*"))
                               :version "3.0"))
 
-(defun download-document (document destination &key (session *gdata-session*))
+(defun download-document (document destination &key (session *gdata-session*) content-type)
   "Downloads DOCUMENT. DESTINATION is a function which will be called with
-an input stream as an argument."
+an input stream as an argument. CONTENT-TYPE indicates the desired format
+of the downloaded data. If NIL, then download the file in the default format.
+Note that most files are only available in a single format, so NIL is usually
+the correct value for this parameter."
+  (check-type document document)
+  (check-type destination function)
   (with-gdata-namespaces
-    (let ((url (dom:get-attribute (xpath:first-node (xpath:evaluate "atom:content[@type='application/atom+xml']"
-                                                                    (node-dom document)))
-                                  "src")))
-      (http-request-with-stream url #'(lambda (s receieved code)
-                                        (declare (ignore receieved code))
-                                        (funcall destination s))
-                                :session session
-                                :force-binary t
-                                :version "3.0"))))
+    (let ((content-node-list (xpath:evaluate (format nil "atom:content~a"
+                                                     (if content-type
+                                                         (format nil "[@type='~a']" content-type)
+                                                         ""))
+                                             (node-dom document))))
+      (when (xpath:node-set-empty-p content-node-list)
+        (error "Document cannot be downloaded"))
+      (let ((url (dom:get-attribute (xpath:first-node content-node-list) "src")))
+        (http-request-with-stream url #'(lambda (s receieved code)
+                                          (declare (ignore receieved code))
+                                          (funcall destination s))
+                                  :session session
+                                  :force-binary t
+                                  :version "3.0")))))
+
+(defun download-document-to-file (document destination &key (session *gdata-session*) content-type overwrite)
+  "Downloads DOCUMENT to a file. DESTINATION is the name of the file.
+If the file already exists and OVERWRITE is non-NIL, overwrite the file,
+otherwise signal an error. CONTENT-TYPE is specified as per DOWNLOAD-DOCUMENT."
+  (with-open-file (s destination
+                     :direction :output
+                     :element-type '(unsigned-byte 8)
+                     :if-exists (if overwrite :supersede :error))
+    (download-document document #'(lambda (in-stream)
+                                    (cl-fad:copy-stream in-stream s))
+                       :session session
+                       :content-type content-type)))
 
 (defun create-document (type title &key (session *gdata-session*))
   (with-gdata-namespaces
