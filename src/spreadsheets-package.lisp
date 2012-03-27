@@ -18,4 +18,5 @@
            #:cell-value
            #:cell-update-error
            #:save-updated-cells
-           #:map-cell-range))
+           #:map-cell-range
+           #:spreadsheet-worksheets))

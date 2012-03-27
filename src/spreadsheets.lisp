@@ -12,11 +12,21 @@
 (defclass spreadsheet (cl-gdata-docs-list:document)
   ((worksheets :type (or list (member :unset))
                :initform :unset
-               :reader spreadsheet-worksheets
                :documentation "A list of the worksheets in this document, or :unset if the worksheets
 has not yet been loaded."))
   (:documentation "Class that manages the content and pending updates to a spreadsheet document.")
   (:metaclass atom-feed-entry-class))
+
+(defgeneric spreadsheet-worksheets (spreadsheet))
+
+(defmethod spreadsheet-worksheets ((spreadsheet spreadsheet))
+  "Returns the content of the WORKSHEETS slot."
+  (slot-value spreadsheet 'worksheets))
+
+(defmethod spreadsheet-worksheets :before ((spreadsheet spreadsheet))
+  "Ensure that the worksheets has been loaded before accessing them."
+  (when (eq (slot-value spreadsheet 'worksheets) :unset)
+    (load-worksheets spreadsheet)))
 
 (defmethod cl-gdata-docs-list::make-document-from-resource (node (type (eql :spreadsheet)))
   (make-instance 'spreadsheet :node-dom node))
