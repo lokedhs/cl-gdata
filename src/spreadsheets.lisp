@@ -55,14 +55,10 @@ if the cell does not contain a number")
 
 (defmethod print-object ((obj spreadsheet-cell) out)
   (print-unreadable-safely (input-value value new-input-value) obj out
-    (format out "~s~a~a"
+    (format out "~s~@[ INPUT-VALUE ~s~]~@[ NEW-INPUT-VALUE ~s~]"
             value
-            (if (equal value input-value)
-                ""
-                (format nil " INPUT-VALUE ~s" input-value))
-            (if new-input-value
-                (format nil " NEW-INPUT-VALUE ~s" new-input-value)
-                ""))))
+            (when (not (equal value input-value)) input-value)
+            new-input-value)))
 
 ;;;
 ;;; WORKSHEET
@@ -171,13 +167,8 @@ if the cell does not contain a number")
                                  (session *gdata-session*)
                                  (min-row 0) (max-row (1- (array-dimension (slot-value worksheet 'cells) 0)))
                                  (min-col 0) (max-col (1- (array-dimension (slot-value worksheet 'cells) 1))))
-  "Call FUNCTION for each cell for the given WORKSHEET with the following arguments:
-DOM-NODE - the <entry> node in the XML result
-ROW - the row number for the node (0-based)
-COLUMN - the column number for the node (0-based)
-VALUE - the content of the <gs:cell>
-INPUT-VALUE - the content of the <gs:cell inputValue=...> attribute
-NUMERIC-VALUE - the numeric content of the cell, or NIL if the cell is not numeric"
+  "Call FUNCTION for each cell that has a value in the given WORKSHEET.
+FUNCTION is called with 3 arguments: The SPREADSHEET-CELL instance, the row and the column indexes."
   (check-type worksheet worksheet)
   (check-type function function)
   (with-slots (cells) worksheet
@@ -185,8 +176,16 @@ NUMERIC-VALUE - the numeric content of the cell, or NIL if the cell is not numer
     (check-range min-row 0 max-row)
     (check-range max-col 0 (1- (array-dimension cells 1)))
     (check-range min-col 0 max-col))
-  (let ((node-doc (%get-and-parse-cell-range worksheet session min-row max-row min-col max-col)))
-    (%map-cell-range-from-dom function node-doc)))
+  (load-cell-range worksheet
+                   :session session
+                   :min-row min-row :max-row max-row :min-col min-col :max-col max-col)
+  (loop
+     for row from min-row to max-row
+     do (loop
+           for col from min-col to max-col
+           do (let ((cell (aref (worksheet-cells worksheet) row col)))
+                (unless (eq cell :empty)
+                  (funcall function cell row col))))))
 
 (defun %load-cell-range-from-dom (worksheet doc &key test)
   (with-slots (cells) worksheet
@@ -200,9 +199,10 @@ NUMERIC-VALUE - the numeric content of the cell, or NIL if the cell is not numer
                               doc)))
 
 (defun load-cell-range (worksheet &key
-                        (session *gdata-session*)
-                        (min-row 0) (max-row (1- (array-dimension (slot-value worksheet 'cells) 0)))
-                        (min-col 0) (max-col (1- (array-dimension (slot-value worksheet 'cells) 1))))
+                                    (session *gdata-session*)
+                                    (min-row 0) (max-row (1- (array-dimension (slot-value worksheet 'cells) 0)))
+                                    (min-col 0) (max-col (1- (array-dimension (slot-value worksheet 'cells) 1)))
+                                    (force nil))
   "Loads the specified cell range into the worksheet."
   (with-slots (cells) worksheet
     (fill-array-slice cells :empty min-row max-row min-col max-col)
