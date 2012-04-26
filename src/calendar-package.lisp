@@ -7,4 +7,10 @@
            #:calendar-name
            #:event
            #:event-id
-           #:event-description))
+           #:event-description
+           #:calendar-summary
+           #:event-created
+           #:event-updated
+           #:event-summary
+           #:event-start
+           #:event-end))
