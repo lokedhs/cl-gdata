@@ -201,14 +201,16 @@ uploaded."
                   (:upload-next (upload-next-chunk (cadr upload-result) 0 nil)))))))))))
 
 (defun delete-document (document &key (session *gdata-session*) (delete nil))
-    (http-request-with-stream (format nil "~a~a"
-                                      (find-feed-from-atom-feed-entry document +ATOM-TAG-EDIT+)
-                                      (if delete "?delete=true" ""))
-                              #'(lambda (s received code) (declare (ignore s received code)) nil)
-                              :session session
-                              :method :delete
-                              :additional-headers '(("If-Match" . "*"))
-                              :version "3.0"))
+  "Delete a document. If DELETE is NIL, the file is moved to the trash.
+If DELETE is non-NIL, te fill will be permanently deleted."
+  (http-request-with-stream (format nil "~a~a"
+                                    (find-feed-from-atom-feed-entry document +ATOM-TAG-EDIT+)
+                                    (if delete "?delete=true" ""))
+                            #'(lambda (s received code) (declare (ignore s received code)) nil)
+                            :session session
+                            :method :delete
+                            :additional-headers '(("If-Match" . "*"))
+                            :version "3.0"))
 
 (defun download-document (document destination &key (session *gdata-session*) content-type)
   "Downloads DOCUMENT. DESTINATION is a function which will be called with
