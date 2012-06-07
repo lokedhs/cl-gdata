@@ -201,8 +201,7 @@ FUNCTION is called with 3 arguments: The SPREADSHEET-CELL instance, the row and 
 (defun load-cell-range (worksheet &key
                                     (session *gdata-session*)
                                     (min-row 0) (max-row (1- (array-dimension (slot-value worksheet 'cells) 0)))
-                                    (min-col 0) (max-col (1- (array-dimension (slot-value worksheet 'cells) 1)))
-                                    (force nil))
+                                    (min-col 0) (max-col (1- (array-dimension (slot-value worksheet 'cells) 1))))
   "Loads the specified cell range into the worksheet."
   (with-slots (cells) worksheet
     (fill-array-slice cells :empty min-row max-row min-col max-col)
@@ -223,6 +222,9 @@ FUNCTION is called with 3 arguments: The SPREADSHEET-CELL instance, the row and 
           cell))))
 
 (defun cell-input-value (worksheet row col &optional (default-value ""))
+  "Returns the input value of the given cell. The input value is the
+value that is typed into the cell, for example a formula. The evaluated
+value is accessible through the function CELL-VALUE."
   (check-type worksheet worksheet)
   (let ((cell (ensure-cell-loaded worksheet row col)))
     (if (eq cell :empty)
@@ -231,6 +233,7 @@ FUNCTION is called with 3 arguments: The SPREADSHEET-CELL instance, the row and 
           (or new-input-value input-value)))))
 
 (defun (setf cell-input-value) (value worksheet row col)
+  "Set the input value of the cell."
   (check-type worksheet worksheet)
   (with-slots (cells) worksheet
     (let ((cell (aref cells row col)))
@@ -243,6 +246,8 @@ FUNCTION is called with 3 arguments: The SPREADSHEET-CELL instance, the row and 
                                                     :new-input-value value))))))
 
 (defun cell-value (worksheet row col &optional (default-value ""))
+  "Returns the value of the cell. The value is the content in the
+cell after evaluating any formula that the cell has."
   (check-type worksheet worksheet)
   (with-slots (cells) worksheet
     (let ((cell (ensure-cell-loaded worksheet row col)))
