@@ -16,4 +16,5 @@
            #:folder
            #:drawing
            #:download-document-to-file
-           #:create-document))
+           #:create-document
+           #:document-content))
