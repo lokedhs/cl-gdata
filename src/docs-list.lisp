@@ -202,7 +202,7 @@ uploaded."
 
 (defun delete-document (document &key (session *gdata-session*) (delete nil))
   "Delete a document. If DELETE is NIL, the file is moved to the trash.
-If DELETE is non-NIL, te fill will be permanently deleted."
+If DELETE is non-NIL, the file will be permanently deleted."
   (http-request-with-stream (format nil "~a~a"
                                     (find-feed-from-atom-feed-entry document +ATOM-TAG-EDIT+)
                                     (if delete "?delete=true" ""))
