@@ -83,6 +83,7 @@ return value is the document type."
 returned objects.
 
 If :SHOWFOLDERS is non-NIL, the resulting list will also contain folder objects.
+
 :TYPE can be used to limit the output to a specific type of documents (one of :DOCUMENT,
 :SPREADSHEET, :PRESENTATION, :DRAWING or :FOLDER).
 
