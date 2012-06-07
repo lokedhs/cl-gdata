@@ -250,7 +250,7 @@ otherwise signal an error. CONTENT-TYPE is specified as per DOWNLOAD-DOCUMENT."
                        :content-type content-type)))
 
 (defun create-document (type title &key (session *gdata-session*))
-  "Create a document of the given TYPE with and TITLE."
+  "Create a document of the given TYPE. TITLE indicates the title of the document."
   (with-gdata-namespaces
     (let ((type-url (car (find type *gdata-document-type-urls* :key #'cdr :test #'equal))))
       (unless type-url
