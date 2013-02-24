@@ -12,21 +12,11 @@
 (defclass spreadsheet (cl-gdata-docs-list:document)
   ((worksheets :type (or list (member :unset))
                :initform :unset
+               :reader spreadsheet-worksheets
                :documentation "A list of the worksheets in this document, or :unset if the worksheets
 has not yet been loaded."))
   (:documentation "Class that manages the content and pending updates to a spreadsheet document.")
   (:metaclass atom-feed-entry-class))
-
-(defgeneric spreadsheet-worksheets (spreadsheet))
-
-(defmethod spreadsheet-worksheets ((spreadsheet spreadsheet))
-  "Returns the content of the WORKSHEETS slot."
-  (slot-value spreadsheet 'worksheets))
-
-(defmethod spreadsheet-worksheets :before ((spreadsheet spreadsheet))
-  "Ensure that the worksheets has been loaded before accessing them."
-  (when (eq (slot-value spreadsheet 'worksheets) :unset)
-    (load-worksheets spreadsheet)))
 
 (defmethod cl-gdata-docs-list::make-document-from-resource (node (type (eql :spreadsheet)))
   (make-instance 'spreadsheet :node-dom node))
@@ -120,10 +110,11 @@ if the cell does not contain a number")
 ;;;                             :content-type "application/atom+xml"
 ;;;                             :content content))))
 
-(defun load-worksheets (doc)
+(defun load-worksheets (doc &key (session *gdata-session*))
   "Loads the worksheets into the document instance. Returns the new worksheets."
   (check-type doc spreadsheet)
-  (let ((doc-node (load-and-parse (find-feed-from-atom-feed-entry doc +SPREADSHEETS-WORKSHEETSFEED+ +ATOM-XML-MIME-TYPE+))))
+  (let ((doc-node (load-and-parse (find-feed-from-atom-feed-entry doc +SPREADSHEETS-WORKSHEETSFEED+ +ATOM-XML-MIME-TYPE+)
+                                  :session session)))
     (with-gdata-namespaces
       (let ((ws-list (xpath:map-node-set->list #'(lambda (node)
                                                    (make-instance 'worksheet
