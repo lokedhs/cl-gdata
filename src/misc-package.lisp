@@ -43,4 +43,5 @@
            #:check-api-key
            #:no-api-key-specified
            #:+SCHEME-KIND+
-           #:atom-xml-writer))
+           #:atom-xml-writer)
+  (:documentation "Internal package used by the cl-gdata implementation. Not intended for general use."))
