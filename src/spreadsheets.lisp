@@ -13,8 +13,8 @@
   ((worksheets :type (or list (member :unset))
                :initform :unset
                :reader spreadsheet-worksheets
-               :documentation "A list of the worksheets in this document, or :unset if the worksheets
-has not yet been loaded."))
+               :documentation "A list of the worksheets in this
+document, or :unset if the worksheets has not yet been loaded."))
   (:documentation "Class that manages the content and pending updates to a spreadsheet document.")
   (:metaclass atom-feed-entry-class))
 
@@ -27,20 +27,21 @@ has not yet been loaded."))
 (defclass spreadsheet-cell (node-dom-mixin)
   ((input-value     :type (or null string)
                     :initarg :input-value
-                    :documentation "The value of the <gs:cell inputValue=...> attribute, or NIL
-if this cell has been initialised before any data was loaded.")
+                    :documentation "The value of the <gs:cell inputValue=...> attribute, or NIL if this
+cell has been initialised before any data was loaded.")
    (value           :type (or null string)
                     :initarg :value
-                    :documentation "The content of the <gc:cell> node, or NIL if this cell
-has been initialised before any data was loaded.")
+                    :documentation "The content of the <gc:cell> node, or NIL if this cell has been
+initialised before any data was loaded.")
    (numeric-value   :type (or number null)
                     :initarg :numeric-value
-                    :documentation "The content of the <gs:cell numericValue=...> attribute, or NIL
-if the cell does not contain a number")
+                    :documentation "The content of the <gs:cell numericValue=...> attribute, or NIL if the
+cell does not contain a number")
    (new-input-value :type (or null string)
                     :initform nil
                     :initarg :new-input-value
-                    :documentation "The updated value prior to uploading, or NIL if the value is unchanged."))
+                    :documentation "The updated value prior to uploading, or NIL if the value is
+                    unchanged."))
   (:documentation "Class that describes the content of a single cell"))
 
 (defmethod print-object ((obj spreadsheet-cell) out)
@@ -159,7 +160,8 @@ if the cell does not contain a number")
                                  (min-row 0) (max-row (1- (array-dimension (slot-value worksheet 'cells) 0)))
                                  (min-col 0) (max-col (1- (array-dimension (slot-value worksheet 'cells) 1))))
   "Call FUNCTION for each cell that has a value in the given WORKSHEET.
-FUNCTION is called with 3 arguments: The SPREADSHEET-CELL instance, the row and the column indexes."
+FUNCTION is called with 3 arguments: The SPREADSHEET-CELL instance,
+the row and the column indexes."
   (check-type worksheet worksheet)
   (check-type function function)
   (with-slots (cells) worksheet
@@ -214,8 +216,8 @@ FUNCTION is called with 3 arguments: The SPREADSHEET-CELL instance, the row and 
 
 (defun cell-input-value (worksheet row col &optional (default-value ""))
   "Returns the input value of the given cell. The input value is the
-value that is typed into the cell, for example a formula. The evaluated
-value is accessible through the function CELL-VALUE."
+value that is typed into the cell, for example a formula. The
+evaluated value is accessible through the function CELL-VALUE."
   (check-type worksheet worksheet)
   (let ((cell (ensure-cell-loaded worksheet row col)))
     (if (eq cell :empty)
@@ -237,8 +239,8 @@ value is accessible through the function CELL-VALUE."
                                                     :new-input-value value))))))
 
 (defun cell-value (worksheet row col &optional (default-value ""))
-  "Returns the value of the cell. The value is the content in the
-cell after evaluating any formula that the cell has."
+  "Returns the value of the cell. The value is the content in the cell
+after evaluating any formula that the cell has."
   (check-type worksheet worksheet)
   (with-slots (cells) worksheet
     (let ((cell (ensure-cell-loaded worksheet row col)))

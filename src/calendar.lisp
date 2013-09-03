@@ -86,8 +86,8 @@
             (cdr (assoc :items data)))))
 
 (defun list-events (calendar &key (api-key *gdata-api-key*) (session *gdata-session*))
-  "List calendar events. CALENDAR is either an instance of calendar, or
-a calendar id string."
+  "List calendar events. CALENDAR is either an instance of calendar, or a
+calendar id string."
   (check-api-key api-key)
   (let ((id (etypecase calendar
               (string calendar)

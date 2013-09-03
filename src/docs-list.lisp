@@ -79,19 +79,21 @@ return value is the document type."
 (defun list-documents (&key (session *gdata-session*) max-results showfolders type query-string updated-min)
   "List all the documents that belongs to the authenticated user.
 
-:MAX-RESULTS can be set to an integer (up to a maximum of 1000) that limits the number of
-returned objects.
+:MAX-RESULTS can be set to an integer (up to a maximum of 1000) that
+limits the number of returned objects.
 
-If :SHOWFOLDERS is non-NIL, the resulting list will also contain folder objects.
+If :SHOWFOLDERS is non-NIL, the resulting list will also contain
+folder objects.
 
-:TYPE can be used to limit the output to a specific type of documents (one of :DOCUMENT,
+:TYPE can be used to limit the output to a specific type of
+documents (one of :DOCUMENT,
 :SPREADSHEET, :PRESENTATION, :DRAWING or :FOLDER).
 
 If :QUERY-STRING is non-NIL, it is used as a search term.
 
-If given, :UPDATED-MIN indicates the oldest documents that should be included in the
-output. The value can be either a universal time value, a local-time instance,
-or a string in standard ISO format."
+If given, :UPDATED-MIN indicates the oldest documents that should be
+included in the output. The value can be either a universal time
+value, a local-time instance, or a string in standard ISO format."
   (check-type max-results (or null alexandria:non-negative-integer))
   (check-type query-string (or null string))
   (check-type updated-min (or null cl-gdata-date-value))
@@ -109,8 +111,8 @@ or a string in standard ISO format."
 
 (defun copy-stream-with-limit (from to limit)
   "Copies a maximum of LIMIT elements into TO \(a stream) from FROM
-\(also a stream) until the end of FROM is reached, in blocks of
-8192 elements. The streams should have the same element type."
+\(also a stream) until the end of FROM is reached, in blocks of 8192
+elements. The streams should have the same element type."
   (let ((buf (make-array 8192
                          :element-type (stream-element-type from))))
     (loop
@@ -135,14 +137,17 @@ or a string in standard ISO format."
 (defun upload-document (file &key title description
                                (session *gdata-session*) (chunk-size (* 512 1024)) (convert nil)
                                (content-type "application/octet-stream") (progress-update nil))
-  "Upload a document to Google. TITLE indicates the document name under which the file will
-be stored. DESCRIPTION is the description of the file. CHUNK-SIZE indicates the size of
-each upload chunk. This value must be a multiple of 512 kB. If non-NIL, CONVERT indicates
-that the file should be converted to the apropriate document format. For example, word
-processing documents will be converted to an editable Google Docs document.
-CONTENT-TYPE specifies the format of the data. If given, PROGRESS-UPDATE will be called
-after each chunk has been uploaded. It will be called with one argument, the number of bytes
-uploaded."
+  "Upload a document to Google.
+
+TITLE indicates the document name under which the file will be stored.
+DESCRIPTION is the description of the file. CHUNK-SIZE indicates the
+size of each upload chunk. This value must be a multiple of 512 kB. If
+non-NIL, CONVERT indicates that the file should be converted to the
+apropriate document format. For example, word processing documents
+will be converted to an editable Google Docs document. CONTENT-TYPE
+specifies the format of the data. If given, PROGRESS-UPDATE will be
+called after each chunk has been uploaded. It will be called with one
+argument, the number of bytes uploaded."
   (unless (and (plusp chunk-size)
                (zerop (mod chunk-size (* 512 1024))))
     (error "CHUNK-SIZE must be greater than zero and a multiple of 512 kB"))
@@ -213,11 +218,12 @@ If DELETE is non-NIL, the file will be permanently deleted."
                             :version "3.0"))
 
 (defun download-document (document destination &key (session *gdata-session*) content-type)
-  "Downloads DOCUMENT. DESTINATION is a function which will be called with
-an input stream as an argument. CONTENT-TYPE indicates the desired format
-of the downloaded data. If NIL, then download the file in the default format.
-Note that most files are only available in a single format, so NIL is usually
-the correct value for this parameter."
+  "Downloads DOCUMENT. DESTINATION is a function which will be called
+with an input stream as an argument. CONTENT-TYPE indicates the
+desired format of the downloaded data. If NIL, then download the file
+in the default format. Note that most files are only available in a
+single format, so NIL is usually the correct value for this
+parameter."
   (check-type document document)
   (check-type destination function)
   (with-gdata-namespaces
@@ -237,9 +243,10 @@ the correct value for this parameter."
                                   :version "3.0")))))
 
 (defun download-document-to-file (document destination &key (session *gdata-session*) content-type overwrite)
-  "Downloads DOCUMENT to a file. DESTINATION is the name of the file.
-If the file already exists and OVERWRITE is non-NIL, overwrite the file,
-otherwise signal an error. CONTENT-TYPE is specified as per DOWNLOAD-DOCUMENT."
+  "Downloads DOCUMENT to a file. DESTINATION is the name of the file. If
+the file already exists and OVERWRITE is non-NIL, overwrite the file,
+otherwise signal an error. CONTENT-TYPE is specified as per
+DOWNLOAD-DOCUMENT."
   (with-open-file (s destination
                      :direction :output
                      :element-type '(unsigned-byte 8)
@@ -250,7 +257,8 @@ otherwise signal an error. CONTENT-TYPE is specified as per DOWNLOAD-DOCUMENT."
                        :content-type content-type)))
 
 (defun create-document (type title &key (session *gdata-session*))
-  "Create a document of the given TYPE. TITLE indicates the title of the document."
+  "Create a document of the given TYPE. TITLE indicates the title of
+the document."
   (with-gdata-namespaces
     (let ((type-url (car (find type *gdata-document-type-urls* :key #'cdr :test #'equal))))
       (unless type-url

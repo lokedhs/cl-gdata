@@ -16,7 +16,8 @@
 
 (defun list-albums (&key (session *gdata-session*) user)
   "Return a list of all accessible albums for a user. USER indicates the
-username whose albmus should be retrieved. Defaults to the current user."
+username whose albmus should be retrieved. Defaults to the current
+user."
   (load-atom-feed-url (format nil "https://picasaweb.google.com/data/feed/api/user/~a"
                               (if user (url-rewrite:url-encode user) "default"))
                       'album
@@ -141,8 +142,9 @@ username whose albmus should be retrieved. Defaults to the current user."
   (mapcar #'car (photo-content photo)))
 
 (defun download-photo-to-stream (photo out-stream &key type)
-  "Download the given photo and write the content to OUT-STREAM. If given, TYPE indicates
-the image type to download. TYPE must be one of the types returned by PHOTO-IMAGE-TYPES."
+  "Download the given photo and write the content to OUT-STREAM. If
+given, TYPE indicates the image type to download. TYPE must be one of
+the types returned by PHOTO-IMAGE-TYPES."
   (check-type photo photo)
   (let ((url (if type
                  (find type (photo-content photo))
@@ -164,10 +166,10 @@ the image type to download. TYPE must be one of the types returned by PHOTO-IMAG
           (close stream))))))
 
 (defun download-photo-to-file (photo filespec &key type overwrite)
-  "Download the given photo to a file given by FILESPEC. If given, TYPE indicates
-the image type to download. TYPE must be one of the types returned by PHOTO-IMAGE-TYPES.
-If the OVERWRITE keyword is non-NIL, an existing file will be overwritten, otherwise
-an error will be raised."
+  "Download the given photo to a file given by FILESPEC. If given, TYPE
+indicates the image type to download. TYPE must be one of the types
+returned by PHOTO-IMAGE-TYPES. If the OVERWRITE keyword is non-NIL, an
+existing file will be overwritten, otherwise an error will be raised."
   (check-type photo photo)
   (with-open-file (out filespec
                        :direction :output
@@ -179,10 +181,11 @@ an error will be raised."
 (alexandria:define-constant +CRLF+ (format nil "~c~c" #\Return #\Newline) :test 'equal)
 
 (defun upload-photo (album type stream title &key (session *gdata-session*) summary)
-  "Upload a photo to Picasa. ALBUM indicates the album the the photo should be uploaded to.
-TYPE is the mime-type of the photo and must be one of the allowed types in *ALLOWED-IMAGE-MIME-TYPES*.
-STREAM must be a binary input stream from which to read the image data. TITLE is the title of
-the photo. SUMMARY is the summary for the photo."
+  "Upload a photo to Picasa. ALBUM indicates the album the the photo
+should be uploaded to. TYPE is the mime-type of the photo and must be
+one of the allowed types in *ALLOWED-IMAGE-MIME-TYPES*. STREAM must be
+a binary input stream from which to read the image data. TITLE is the
+title of the photo. SUMMARY is the summary for the photo."
   (check-type album album)
   (unless (member type *allowed-image-mime-types* :test #'equal)
     (error "Image type ~a must be one of ~s" type *allowed-image-mime-types*))
