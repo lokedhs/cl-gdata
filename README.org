@@ -1,9 +1,5 @@
 Summary documentation for cl-gdata. Work in progress.
 
-This file is using Org Mode. If you opened this document in Emacs and
-only see the headers, go to the header row, and press TAB to open or
-close it.
-
 * Author Contact Information
 
 Elias Mårtenson
