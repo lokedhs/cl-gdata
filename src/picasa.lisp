@@ -60,7 +60,7 @@ user."
                        :node "gphoto:size/text()"
                        :node-type :number
                        :documentation "The file size of the photo")
-   (abs-rotation       :type number
+   (abs-rotation       :type (or number nil)
                        :reader photo-abs-rotation
                        :node "gphoto:absRotation/text()"
                        :node-type :number)
