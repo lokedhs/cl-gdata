@@ -76,13 +76,13 @@ not work yet.
 
 The document List API is used to access documents in Google Docs.
 
-All symbols for this part of the API is in the CL-GDATA-DOCS-LIST
+All symbols for this part of the API is in the =CL-GDATA-DOCS-LIST=
 package. The examples assumes that this package is interned in the
 current package.
 
 *** Listing Documents
 
-Listing documents is performed using the LIST-DOCUMENTS function:
+Listing documents is performed using the =LIST-DOCUMENTS= function:
 
 #+begin_src lisp
 (list-documents)
@@ -98,7 +98,8 @@ Running the above results in something like the following:
 *** Document Object Hierarchy
 
 All document classes inherit from the DOCUMENT class. This itself
-inherits from ATOM-FEED-ENTRY (see [[ATOM-FEED-ENTRY Class Description]]).
+inherits from =ATOM-FEED-ENTRY= (see [[ATOM-FEED-ENTRY Class
+Description]]).
 
 | Slot               | Accessor                    | Description                                                    |
 |--------------------+-----------------------------+----------------------------------------------------------------|
@@ -124,9 +125,10 @@ TODO: check the source code for now: picasa.lisp
 ** Google Code Issue Tracker API
 
 TODO: check the source code for now: issue-tracker.lisp
+
 ** ATOM-FEED-ENTRY Class Description
 
-The class ATOM-FEED-ENTRY is the superclass of all classes that
+The class =ATOM-FEED-ENTRY= is the superclass of all classes that
 describe entries from an Atom feed. This includes all documents from
 Google Docs as well as Picasa documents and Google Contacts.
 
