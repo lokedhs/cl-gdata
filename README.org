@@ -12,7 +12,9 @@ cl-gdata is a project aimed at implementing the Google GData API's in
 Common Lisp.
 
 Source code can be found at: https://github.com/lokedhs/cl-gdata
+
 Web site: http://source.dhsdevelopments.com/home/cl-gdata
+
 Google Group: https://groups.google.com/forum/?fromgroups#!forum/cl-gdata
 
 * Compatilibity
@@ -43,17 +45,17 @@ ways are: [[http://code.google.com/apis/gdata/docs/auth/overview.html#ClientLogi
 
 cl-gdata supports different implementations of authentication
 objects, although currently only ClientLogin is supported by means of
-the CL-GDATA-CLIENTLOGIN:CLIENTLOGIN-SESSION class.
+the =CL-GDATA-CLIENTLOGIN:CLIENTLOGIN-SESSION= class.
 
 All functions that require authentication needs to be able to access a
 session instance that is responsible for handling the authentication
 process. The session can be specified using the keyword
 argument :SESSION and will default to the content of
-CL-GDATA:*GDATA-SESSION*.
+=CL-GDATA:*GDATA-SESSION*=.
 
 *** Authenticating With ClientLogin
 The ClientLogin session instance is created by instantiating the
-CL-GDATA-CLIENTLOGIN:CLIENTLOGIN-SESSION class:
+=CL-GDATA-CLIENTLOGIN:CLIENTLOGIN-SESSION= class:
 
 #+begin_src lisp
 (setq cl-gdata:*gdata-session*
