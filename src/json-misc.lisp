@@ -1,7 +1,5 @@
 (in-package :cl-gdata-misc)
 
-(declaim #.cl-gdata::*compile-decl*)
-
 (defclass json-instance ()
   ((data :type list
          :initarg :data

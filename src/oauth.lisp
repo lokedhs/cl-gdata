@@ -1,7 +1,5 @@
 (in-package :cl-gdata-oauth)
 
-(declaim #.cl-gdata::*compile-decl*)
-
 ;;; insert your credentials and auxiliary information here.
 (defparameter *key* "anonymous")
 (defparameter *secret* "anonymous")

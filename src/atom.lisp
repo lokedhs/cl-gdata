@@ -1,7 +1,5 @@
 (in-package :cl-gdata-misc)
 
-(declaim #.cl-gdata::*compile-decl*)
-
 (alexandria:define-constant +ATOM-TAG-FEED+ "http://schemas.google.com/g/2005#feed" :test 'equal)
 (alexandria:define-constant +ATOM-TAG-EDIT+ "edit" :test 'equal)
 

@@ -1,7 +1,5 @@
 (in-package :cl-gdata-calendar)
 
-(declaim #.cl-gdata::*compile-decl*)
-
 (defun parse-timestamp (data)
   (unless (and (listp data) (null (cdr data)))
     (error "Unknown timestamp format: ~s" data))

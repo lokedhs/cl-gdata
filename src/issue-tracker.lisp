@@ -1,7 +1,5 @@
 (in-package :cl-gdata-issue-tracker)
 
-(declaim #.cl-gdata::*compile-decl*)
-
 (alexandria:define-constant +COMMENTS-TAG-FEED+ "replies" :test 'equal)
 
 (defclass atom-author-mixin ()

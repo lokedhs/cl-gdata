@@ -1,7 +1,5 @@
 (in-package :cl-gdata-misc)
 
-(declaim #.cl-gdata::*compile-decl*)
-
 (alexandria:define-constant +SCHEME-KIND+ "http://schemas.google.com/g/2005#kind" :test 'equal)
 
 (defmacro print-unreadable-safely ((&rest slots) object stream &body body)

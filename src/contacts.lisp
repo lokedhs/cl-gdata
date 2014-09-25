@@ -1,7 +1,5 @@
 (in-package :cl-gdata-contacts)
 
-(declaim #.cl-gdata::*compile-decl*)
-
 (alexandria:define-constant +EMAIL-TAG-HOME+ "http://schemas.google.com/g/2005#home" :test 'equal)
 (alexandria:define-constant +EMAIL-TAG-WORK+ "http://schemas.google.com/g/2005#work" :test 'equal)
 (alexandria:define-constant +EMAIL-TAG-OTHER+ "http://schemas.google.com/g/2005#other" :test 'equal)

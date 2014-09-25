@@ -1,7 +1,5 @@
 (in-package :cl-gdata-misc)
 
-(declaim #.cl-gdata::*compile-decl*)
-
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defparameter *gdata-namespaces* '(("atom" "http://www.w3.org/2005/Atom")
                                      ("gd" "http://schemas.google.com/g/2005")

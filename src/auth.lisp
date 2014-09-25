@@ -1,7 +1,5 @@
 (in-package :cl-gdata-misc)
 
-(declaim #.cl-gdata::*compile-decl*)
-
 (alexandria:define-constant +HTTP-GDATA-USER-AGENT+ "cl-gdata (gzip)" :test 'equal)
 
 (define-condition authentication-failed (error)

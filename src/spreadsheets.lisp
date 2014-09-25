@@ -1,7 +1,5 @@
 (in-package :cl-gdata-spreadsheets)
 
-(declaim #.cl-gdata::*compile-decl*)
-
 (alexandria:define-constant +SPREADSHEETS-WORKSHEETSFEED+ "http://schemas.google.com/spreadsheets/2006#worksheetsfeed" :test 'equal)
 (alexandria:define-constant +SPREADSHEETS-TABLESFEED+ "http://schemas.google.com/spreadsheets/2006#tablesfeed" :test 'equal)
 (alexandria:define-constant +SPREADSHEETS-CELLSFEED+ "http://schemas.google.com/spreadsheets/2006#cellsfeed" :test 'equal)

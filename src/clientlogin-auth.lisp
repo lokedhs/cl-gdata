@@ -1,7 +1,5 @@
 (in-package :cl-gdata-clientlogin)
 
-(declaim #.cl-gdata::*compile-decl*)
-
 (defclass clientlogin-session ()
   ((username  :type (or null string)
               :initarg :user

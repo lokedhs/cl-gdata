@@ -1,7 +1,5 @@
 (in-package :cl-gdata-docs-list)
 
-(declaim #.cl-gdata::*compile-decl*)
-
 (alexandria:define-constant +CREATE-MEDIA-URL+ "https://docs.google.com/feeds/default/private/full" :test 'equal)
 (alexandria:define-constant +DOCS-THUMBNAIL+ "http://schemas.google.com/docs/2007/thumbnail" :test 'equal)
 (alexandria:define-constant +RESUMABLE-CREATE-MEDIA-REF+ "http://schemas.google.com/g/2005#resumable-create-media" :test 'equal)

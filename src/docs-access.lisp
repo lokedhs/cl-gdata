@@ -1,7 +1,5 @@
 (in-package :cl-gdata-docs-list)
 
-(declaim #.cl-gdata::*compile-decl*)
-
 (defclass access (atom-feed-entry)
   ((role  :type string
           :reader access-role

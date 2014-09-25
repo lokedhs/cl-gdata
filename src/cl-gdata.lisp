@@ -1,7 +1,5 @@
 (in-package :cl-gdata)
 
-(declaim #.*compile-decl*)
-
 (defvar *verbose-http-errors* nil
   "If non-nil, report detailed HTTP error information to *DEBUG-IO*")
 
