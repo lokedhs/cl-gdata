@@ -11,9 +11,9 @@
 (defclass app-session (scope-session)
   (;;; These values are obtained (for Google) from here: https://code.google.com/apis/console
    (client-id :type string :initform "" :initarg :client-id
-	      :reader device-session-client-id)
+	      :reader app-session-client-id)
    (client-secret :type (or string null) :initform nil :initarg :client-secret
-		  :reader device-session-client-secret))
+		  :reader app-session-client-secret))
   (:documentation "Session instance for Device GData sessions"))
 
 (defun get-app-uri (scope client-id)
@@ -26,9 +26,9 @@ SCOPE is one or more services for which we request authentication. It
 must be a string designator or a list of thoses."
   (when (listp scope)
     (setf scope (format nil "~{~A ~}" scope)))
-  (let ((endopint (puri:uri *app-auth-endpoint*)))
+  (let ((endpoint (puri:uri *app-auth-endpoint*)))
     (setf (puri:uri-query endpoint)
-	  (drakma::alist-to-url-encode-string
+	  (drakma::alist-to-url-encoded-string
 	   `(("response_type" . "code")
 	     ("client_id" . ,client-id)
 	     ("redirect_uri" . "urn:ietf:wg:oauth:2.0:oob")
@@ -38,7 +38,7 @@ must be a string designator or a list of thoses."
   ~A
 in your browser and copy the code that it is offered in this application.
 Enter code:~%"
-	    url)
+	    (puri:uri endpoint))
     (string-trim (read-line))))
 
 (defmethod scope-session-authorize ((session app-session) scope)
