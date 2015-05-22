@@ -74,8 +74,9 @@
   (:documentation "Base class for Google's OAuth2 sessions"))
 
 (defgeneric scope-session-authorize (session scope)
-  (:documentation "Generate a new code for a given scope. This function returns
-the code that validates this authorisation and can be used to request token."))
+  (:documentation "Generate a new code for a given scope. This
+function returns and caches the code that validates this authorisation
+and can be used to request token."))
 
 (defgeneric scope-session-get-token (session scope)
   (:documentation "Generate a new token for this scope, using a previously obtained code."))
@@ -150,7 +151,8 @@ the code that validates this authorisation and can be used to request token."))
                                   (method :get) (parameters nil) (content nil) (want-stream nil)
                                   (content-type nil) (additional-headers nil) (user-agent "cl-gdata")
                                   (force-binary nil) (content-length nil))
-  (let ((auth-string (scope-session-authenticate session (resolve-scope-from-url url))))
+  (let* ((token (scope-session-authenticate session (resolve-scope-from-url url)))
+	 (auth-string (oauth2-token-string token)))
     (apply #'drakma:http-request url
            :method method
            :parameters parameters
