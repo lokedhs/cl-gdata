@@ -40,6 +40,7 @@
                                      (:file "contacts-package")
                                      (:file "issue-tracker-package")
                                      (:file "calendar-package")
+				     (:file "sites-package")
                                      (:file "cl-gdata-user")
                                      (:file "cl-gdata")
                                      (:file "misc")
@@ -57,4 +58,5 @@
                                      (:file "contacts")
                                      (:file "picasa")
                                      (:file "issue-tracker")
+				     (:file "sites")
                                      (:file "calendar")))))
