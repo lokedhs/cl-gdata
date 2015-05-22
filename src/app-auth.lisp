@@ -3,6 +3,8 @@
 ;;;
 ;;; This file implements the Google OAuth2 For Devices protocol
 ;;;    https://developers.google.com/identity/protocols/OAuth2InstalledApp
+;;; with hints from the PHP file
+;;;    https://github.com/googleads/googleads-php-lib/blob/master/examples/AdWords/Auth/GetRefreshToken.php
 ;;;
 
 (defparameter *app-auth-endpoint* "https://accounts.google.com/o/oauth2/auth")
@@ -16,7 +18,7 @@
 		  :reader app-session-client-secret))
   (:documentation "Session instance for Device GData sessions"))
 
-(defun get-app-uri (scope client-id)
+(defun make-app-uri (scope client-id)
   "Return an URL to authorise this application in the given scopes.
 
 CLIENT-ID is information that determines the application and is provided
@@ -34,15 +36,20 @@ must be a string designator or a list of thoses."
 	     ("redirect_uri" . "urn:ietf:wg:oauth:2.0:oob")
 	     ("scope" .  ,scope))
 	   :latin1  'drakma:url-encode))
-    (format t "Please open the address
-  ~A
-in your browser and copy the code that it is offered in this application.
-Enter code:~%"
-	    (puri:uri endpoint))
-    (string-trim (read-line))))
+    (puri:uri endpoint)))
 
 (defmethod scope-session-authorize ((session app-session) scope)
-  (get-app-uri scope (app-session-client-id session)))
+  (format t "Please open the address
+  ~A
+in your browser and copy the code that it is offered in this application.
+Enter code:~%" (make-app-uri scope (app-session-client-id session)))
+  ;; With this code we have to immediately authorise the scope
+  ;; because, while the code expires, the refresh token does not.
+  (let ((code (string-trim '(#\Space #\NewLine) (read-line))))
+    (setf (scope-session-code session scope)
+	  code)
+    (setf (scope-session-token session scope)
+	  (scope-session-get-token session scope))))
 
 (defmethod scope-session-get-token ((session app-session) scope)
   (request-oauth2-token
