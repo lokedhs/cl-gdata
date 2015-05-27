@@ -10,7 +10,8 @@
                                      ("exif" "http://schemas.google.com/photos/exif/2007")
                                      ("media" "http://search.yahoo.com/mrss/")
                                      ("issues" "http://schemas.google.com/projecthosting/issues/2009")
-                                     ("gAcl" "http://schemas.google.com/acl/2007"))))
+                                     ("gAcl" "http://schemas.google.com/acl/2007")
+				     ("sites" "http://schemas.google.com/sites/2008"))))
 
 (defmacro with-gdata-namespaces (&body body)
   `(xpath:with-namespaces ,*gdata-namespaces*
