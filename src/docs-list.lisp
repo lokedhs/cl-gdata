@@ -181,7 +181,7 @@ argument, the number of bytes uploaded."
                               (let ((next-offset (+ start-offset chunk-size)))
                                 (when progress-update
                                   (funcall progress-update next-offset))
-                                (upload-next-chunk (cadr upload-result) next-offset location)) ())
+                                (upload-next-chunk (cadr upload-result) next-offset location)))
                              (:upload-done
                               (cadr upload-result)))))))
 
